@@ -18,6 +18,10 @@ namespace ShadowMain
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
+        MouseState mouseState;
+
+        // Time
+        float elapsedTime = 0;
 
         // Background
         Texture2D staticBG;
@@ -27,25 +31,25 @@ namespace ShadowMain
         // Represents the player
         Player player;
 
+        // UI
+        SpriteFont font;
+        Texture2D recordFrame;
+        bool isRecording;
+        Texture2D cursorTexture;
+        Vector2 cursorPos;
+
         // Keyboard states used to determine key presses
         KeyboardState currentKeyboardState;
         KeyboardState previousKeyboardState;
-
-        // Gamepad states used to determine button presses
-        GamePadState currentGamePadState;
-        GamePadState previousGamePadState;
 
         // A movement speed for the player
         float playerMoveSpeed;
 
 
-
         public Game1()
         {
-
-            
             graphics = new GraphicsDeviceManager(this);
-            //Set screen resolution to HD
+            // Set screen resolution to HD
             graphics.PreferredBackBufferHeight = 720;
             graphics.PreferredBackBufferWidth = 1280;
             Content.RootDirectory = "Content";
@@ -79,12 +83,17 @@ namespace ShadowMain
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            // Draw static background
+            // Load static background
             staticBG = Content.Load<Texture2D>("Background\\bg1");
 
-            // Draw foreground
+            // Load foreground
             foreLayer1.Initialize(Content, "Foreground\\fg1", new Vector2(0,0));
-            foreLayer2.Initialize(Content, "Foreground\\fg2", new Vector2(0, 0));
+            foreLayer2.Initialize(Content, "Foreground\\fg2", new Vector2(0,0));
+
+            // Load UI
+            font = Content.Load<SpriteFont>("DINFont");
+            recordFrame = Content.Load<Texture2D>("Misc\\recframe");
+            cursorTexture = Content.Load<Texture2D>("Misc\\cursor");
 
             // Load the player resources            
             Vector2 playerPosition = new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X, GraphicsDevice.Viewport.TitleSafeArea.Y + GraphicsDevice.Viewport.TitleSafeArea.Height / 2);
@@ -112,13 +121,10 @@ namespace ShadowMain
                 this.Exit();
 
             // Save the previous state of the keyboard and game pad so we can determinesingle key/button presses
-            previousGamePadState = currentGamePadState;
             previousKeyboardState = currentKeyboardState;
 
             // Read the current state of the keyboard and gamepad and store it
             currentKeyboardState = Keyboard.GetState();
-            currentGamePadState = GamePad.GetState(PlayerIndex.One);
-
 
             //Update the player
             UpdatePlayer(gameTime);
@@ -127,44 +133,69 @@ namespace ShadowMain
             foreLayer1.Update();
             foreLayer2.Update();
 
+            //Update UI
+            cursorPos = new Vector2(mouseState.X, mouseState.Y);
+
             base.Update(gameTime);
         }
 
         private void UpdatePlayer(GameTime gameTime)
         {
-
-            // Get Thumbstick Controls
-            player.Position.X += currentGamePadState.ThumbSticks.Left.X * playerMoveSpeed;
-            player.Position.Y -= currentGamePadState.ThumbSticks.Left.Y * playerMoveSpeed;
-
-            // Use the Keyboard / Dpad
-            if (currentKeyboardState.IsKeyDown(Keys.Left) ||
-            currentGamePadState.DPad.Left == ButtonState.Pressed)
-            {
-                player.Position.X -= playerMoveSpeed;
-            }
-            if (currentKeyboardState.IsKeyDown(Keys.Right) ||
-            currentGamePadState.DPad.Right == ButtonState.Pressed)
-            {
-                player.Position.X += playerMoveSpeed;
-            }
-            if (currentKeyboardState.IsKeyDown(Keys.Up) ||
-            currentGamePadState.DPad.Up == ButtonState.Pressed)
-            {
-                player.Position.Y -= playerMoveSpeed;
-            }
-            if (currentKeyboardState.IsKeyDown(Keys.Down) ||
-            currentGamePadState.DPad.Down == ButtonState.Pressed)
-            {
-                player.Position.Y += playerMoveSpeed;
-            }
-
-
-            // Make sure that the player does not go out of bounds
+            KeyPressed();
             player.Position.X = MathHelper.Clamp(player.Position.X, 0, GraphicsDevice.Viewport.Width - player.Width);
             player.Position.Y = MathHelper.Clamp(player.Position.Y, 0, GraphicsDevice.Viewport.Height - player.Height);
 
         }
+
+        private void AnimManager(GameTime gameTime)
+        { }
+
+        private Vector2 SmoothMove(Vector2 initPos, Vector2 endPos, int animDuration, GameTime gameTime)
+        {
+            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            elapsedTime += dt;
+            if (elapsedTime > 1)
+                elapsedTime = 1;
+
+            float param = elapsedTime / animDuration;
+            return Vector2.Lerp(initPos, endPos, param);
+        }
+
+        private void KeyPressed()
+        {
+            // Basic Movement
+            if (currentKeyboardState.IsKeyDown(Keys.Left))
+            {
+                player.Position.X -= playerMoveSpeed;
+            }
+            if (currentKeyboardState.IsKeyDown(Keys.Right))
+            {
+                player.Position.X += playerMoveSpeed;
+            }
+            if (currentKeyboardState.IsKeyDown(Keys.Up))
+            {
+                player.Position.Y -= playerMoveSpeed;
+            }
+            if (currentKeyboardState.IsKeyDown(Keys.Down))
+            {
+                player.Position.Y += playerMoveSpeed;
+            }
+            // Spawn Menu
+            if (currentKeyboardState.IsKeyDown(Keys.Space))
+            {
+                if (isRecording == false)
+                {
+                    isRecording = true;
+                }
+                else
+                {
+                    isRecording = false;
+                }
+            }
+
+
+        }
+
 
         /// <summary>
         /// This is called when the game should draw itself.
@@ -186,6 +217,12 @@ namespace ShadowMain
             // Draw foreground
             foreLayer1.Draw(spriteBatch);
             foreLayer2.Draw(spriteBatch);
+
+            // Draw UI
+            spriteBatch.Draw(cursorTexture, cursorPos, Color.White);
+
+            // Debug text
+             spriteBatch.DrawString(font, "ramda", new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 100, GraphicsDevice.Viewport.TitleSafeArea.Y), Color.White);
 
             //Stop drawing
             spriteBatch.End();
