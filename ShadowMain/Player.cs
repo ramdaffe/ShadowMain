@@ -7,43 +7,32 @@ namespace ShadowMain
 {
     class Player
     {
-        // Animation representing the player
-        public Texture2D PlayerTexture;
 
-        // Position of the Player relative to the upper left side of the screen
+        public Texture2D Cursor;
+
         public Vector2 Position;
 
         // State of the player
-        public bool Active;
+        public bool RecordState;
 
-        // Amount of hit points that player has
-        public int Health;
-
-        // Get the width of the player ship
+        // Get the width of the cursor
         public int Width
         {
-            get { return PlayerTexture.Width; }
+            get { return Cursor.Width; }
         }
 
-        // Get the height of the player ship
+        // Get the height of the cursor
         public int Height
         {
-            get { return PlayerTexture.Height; }
+            get { return Cursor.Height; }
         }
 
 
         public void Initialize(Texture2D texture, Vector2 position)
         {
-            PlayerTexture = texture;
-
-            // Set the starting position of the player around the middle of thescreen and to the back
+            Cursor = texture;
             Position = position;
-
-            // Set the player to be active
-            Active = true;
-
-            // Set the player health
-            Health = 100;
+            RecordState = false;
         }
 
 
@@ -53,7 +42,7 @@ namespace ShadowMain
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(PlayerTexture, Position, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+            spriteBatch.Draw(Cursor, Position, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
         }
 
     }

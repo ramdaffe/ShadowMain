@@ -19,6 +19,11 @@ namespace ShadowMain
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
+        // Background
+        Texture2D staticBG;
+        Foreground foreLayer1;
+        Foreground foreLayer2;
+
         // Represents the player
         Player player;
 
@@ -37,7 +42,12 @@ namespace ShadowMain
 
         public Game1()
         {
+
+            
             graphics = new GraphicsDeviceManager(this);
+            //Set screen resolution to HD
+            graphics.PreferredBackBufferHeight = 720;
+            graphics.PreferredBackBufferWidth = 1280;
             Content.RootDirectory = "Content";
         }
 
@@ -51,11 +61,11 @@ namespace ShadowMain
         {
             //Initialize the player class
             player = new Player();
-
-            // Set a constant player move speed
             playerMoveSpeed = 8.0f;
 
-
+            //Initialize foreground
+            foreLayer1 = new Foreground();
+            foreLayer2 = new Foreground();
 
             base.Initialize();
         }
@@ -68,6 +78,13 @@ namespace ShadowMain
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
+
+            // Draw static background
+            staticBG = Content.Load<Texture2D>("Background\\bg1");
+
+            // Draw foreground
+            foreLayer1.Initialize(Content, "Foreground\\fg1", new Vector2(0,0));
+            foreLayer2.Initialize(Content, "Foreground\\fg2", new Vector2(0, 0));
 
             // Load the player resources            
             Vector2 playerPosition = new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X, GraphicsDevice.Viewport.TitleSafeArea.Y + GraphicsDevice.Viewport.TitleSafeArea.Height / 2);
@@ -105,7 +122,10 @@ namespace ShadowMain
 
             //Update the player
             UpdatePlayer(gameTime);
-
+            
+            //Update foreground
+            foreLayer1.Update();
+            foreLayer2.Update();
 
             base.Update(gameTime);
         }
@@ -157,8 +177,15 @@ namespace ShadowMain
             // Start drawing
             spriteBatch.Begin();
 
-            // Draw the Player
+            // Draw background
+            spriteBatch.Draw(staticBG, Vector2.Zero, Color.White);
+
+            // Draw Player
             player.Draw(spriteBatch);
+            
+            // Draw foreground
+            foreLayer1.Draw(spriteBatch);
+            foreLayer2.Draw(spriteBatch);
 
             //Stop drawing
             spriteBatch.End();
