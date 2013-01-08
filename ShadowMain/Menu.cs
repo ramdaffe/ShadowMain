@@ -1,27 +1,37 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace ShadowMain
 {
     class Menu
     {
-        public Texture2D Background;
         public Texture2D Logo;
-        public Texture2D NewButton;
-        public Texture2D LoadButton;
-        public Texture2D HelpButton;
+        MenuButton NewButton;
+        MenuButton LoadButton;
+        MenuButton HelpButton;
+        
+
+        //positions
+        public Vector2 NewButtonPos;
+        public Vector2 LoadButtonPos;
+        public Vector2 HelpButtonPos;
+
         bool MenuState = true;
 
-        public void Initialize(Texture2D bg,Texture2D logo, Texture2D newButton,Texture2D loadButton, Texture2D helpButton, Vector2 position)
+        public void Initialize(ContentManager content)
         {
-            Background = bg;
-            Logo = logo;
-            NewButton = newButton;
-            LoadButton = loadButton;
-            HelpButton = helpButton;
+            NewButtonPos = new Vector2(750, 150);
+            LoadButtonPos = new Vector2(750, 300);
+            HelpButtonPos = new Vector2(750, 450);
+            NewButton = new MenuButton();
+            LoadButton = new MenuButton();
+            HelpButton = new MenuButton();
+            NewButton.Initialize(content.Load<Texture2D>("Button\\menu_new"), NewButtonPos, "new");
+            LoadButton.Initialize(content.Load<Texture2D>("Button\\menu_load"), LoadButtonPos, "load");
+            HelpButton.Initialize(content.Load<Texture2D>("Button\\menu_help"), HelpButtonPos, "help");
         }
-
 
         public void Update()
         {
@@ -29,10 +39,9 @@ namespace ShadowMain
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(Background, Vector2.Zero, Color.White);
-            spriteBatch.Draw(Background, Vector2.Zero, Color.White);
-            spriteBatch.Draw(Background, Vector2.Zero, Color.White);
-            spriteBatch.Draw(Background, Vector2.Zero, Color.White);
+            NewButton.Draw(spriteBatch);
+            LoadButton.Draw(spriteBatch);
+            HelpButton.Draw(spriteBatch);
         }
     }
 }

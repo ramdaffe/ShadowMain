@@ -10,6 +10,9 @@ Content\Foreground\fg2.xnb
 Content\DINFont.xnb
 Content\Misc\cursor.xnb
 Content\Misc\recframe.xnb
+Content\Button\menu_help.xnb
+Content\Button\menu_load.xnb
+Content\Button\menu_new.xnb
 Content\Sound\gameMusic.wma
 Content\Sound\menuMusic.wma
 Content\Textures\UI_Null.xnb

@@ -107,6 +107,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MenuButton.cs" />
     <Compile Include="Load.cs" />
     <Compile Include="Foreground.cs" />
     <Compile Include="Global.cs" />

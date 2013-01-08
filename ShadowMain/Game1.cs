@@ -32,6 +32,9 @@ namespace ShadowMain
         Foreground foreLayer1;
         Foreground foreLayer2;
 
+        // Menu
+        Menu mainmenu;
+
         // Represents the player
         Player player;
 
@@ -64,9 +67,9 @@ namespace ShadowMain
             // Set screen resolution to HD
             graphics.PreferredBackBufferHeight = Global.ScreenHeight;
             graphics.PreferredBackBufferWidth = Global.ScreenWidth;
-            CenterScreen = new Vector2(640,360);
-            TopScreen = new Vector2(640, 0);
-            BottomScreen = new Vector2(640, 720);
+            CenterScreen = new Vector2(Global.ScreenWidth / 2, Global.ScreenHeight / 2);
+            TopScreen = new Vector2(Global.ScreenWidth / 2, 0);
+            BottomScreen = new Vector2(Global.ScreenWidth / 2, Global.ScreenHeight);
             Content.RootDirectory = "Content";
         }
 
@@ -86,6 +89,9 @@ namespace ShadowMain
             //Initialize foreground
             foreLayer1 = new Foreground();
             foreLayer2 = new Foreground();
+
+            //Init Menu
+            mainmenu = new Menu();
 
             base.Initialize();
         }
@@ -116,6 +122,9 @@ namespace ShadowMain
             _UI.SetupControls(GameInput);
             _UI.Startup(this, GameInput);
             _UI.Screen.AddScreen(new UI.ScreenTest());
+
+            // Load Menu
+            mainmenu.Initialize(Content);
 
             // Load the player resources            
             Vector2 playerPosition = new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X, GraphicsDevice.Viewport.TitleSafeArea.Y + GraphicsDevice.Viewport.TitleSafeArea.Height / 2);
@@ -166,35 +175,12 @@ namespace ShadowMain
             //TEST
             player.Position = SmoothMove(a, b, 5, gameTime);
 
+
             base.Update(gameTime);
         }
 
         private void UpdatePlayer(GameTime gameTime)
         {
-            KeyPressed();
-            player.Position.X = MathHelper.Clamp(player.Position.X, 0, GraphicsDevice.Viewport.Width - player.Width);
-            player.Position.Y = MathHelper.Clamp(player.Position.Y, 0, GraphicsDevice.Viewport.Height - player.Height);
-        }
-
-
-        private void AnimManager(GameTime gameTime)
-        { }
-
-        private Vector2 SmoothMove(Vector2 initPos, Vector2 endPos, int animDuration, GameTime gameTime)
-        {
-            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            elapsedTime += dt;
-            if (elapsedTime > 1)
-                elapsedTime = 1;
-
-            float param = elapsedTime / animDuration;
-            return Vector2.Lerp(initPos, endPos, (float)Math.Pow(param / 2.0, 0.5));
-            
-        }
-
-        private void KeyPressed()
-        {
-            // Basic Movement
             if (currentKeyboardState.IsKeyDown(Keys.Left))
             {
                 player.Position.X -= playerMoveSpeed;
@@ -225,9 +211,24 @@ namespace ShadowMain
                     recOpacity = 0.0f;
                 }
             }
+            player.Position.X = MathHelper.Clamp(player.Position.X, 0, GraphicsDevice.Viewport.Width - player.Width);
+            player.Position.Y = MathHelper.Clamp(player.Position.Y, 0, GraphicsDevice.Viewport.Height - player.Height);
+        }
 
 
+        private void AnimManager(GameTime gameTime)
+        { }
 
+        private Vector2 SmoothMove(Vector2 initPos, Vector2 endPos, int animDuration, GameTime gameTime)
+        {
+            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            elapsedTime += dt;
+            if (elapsedTime > 1)
+                elapsedTime = 1;
+
+            float param = elapsedTime / animDuration;
+            return Vector2.Lerp(initPos, endPos, (float)Math.Pow(param / 2.0, 0.5));
+            
         }
 
 
@@ -262,6 +263,9 @@ namespace ShadowMain
 
             // Draw XUI
              _UI.Sprite.Render(0);
+
+            // Draw Button
+             mainmenu.Draw(spriteBatch);
 
             //Stop drawing
             spriteBatch.End();
