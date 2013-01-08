@@ -1,20 +1,22 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace ShadowMain
 {
-    class Background
+    class Load
     {
-        Texture2D texture;
-        public void Initialize()
+
+        public void Initialize(Texture2D texture, Vector2 position)
         {
         }
+
+
         public void Update()
         {
         }
-        public void Draw()
+
+        public void Draw(SpriteBatch spriteBatch)
         {
         }
     }

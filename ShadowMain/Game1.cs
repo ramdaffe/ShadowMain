@@ -16,6 +16,10 @@ namespace ShadowMain
     /// </summary>
     public class Game1 : Microsoft.Xna.Framework.Game
     {
+        //static var
+        Vector2 CenterScreen, TopScreen, BottomScreen;
+
+
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         MouseState mouseState;
@@ -33,10 +37,14 @@ namespace ShadowMain
 
         // UI
         SpriteFont font;
-        Texture2D recordFrame;
-        bool isRecording;
+        Texture2D recordFrameTexture;
+        bool isRecording = false;
+        float recOpacity = 0.0f;
         Texture2D cursorTexture;
         Vector2 cursorPos;
+
+        // XUI
+        private GameInput GameInput;
 
         // Keyboard states used to determine key presses
         KeyboardState currentKeyboardState;
@@ -44,14 +52,21 @@ namespace ShadowMain
 
         // A movement speed for the player
         float playerMoveSpeed;
+        Vector2 burst = new Vector2(500,0);
 
+        // TEST
+        Vector2 a = new Vector2(0, 0);
+        Vector2 b = new Vector2(0, 600);
 
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
             // Set screen resolution to HD
-            graphics.PreferredBackBufferHeight = 720;
-            graphics.PreferredBackBufferWidth = 1280;
+            graphics.PreferredBackBufferHeight = Global.ScreenHeight;
+            graphics.PreferredBackBufferWidth = Global.ScreenWidth;
+            CenterScreen = new Vector2(640,360);
+            TopScreen = new Vector2(640, 0);
+            BottomScreen = new Vector2(640, 720);
             Content.RootDirectory = "Content";
         }
 
@@ -65,6 +80,7 @@ namespace ShadowMain
         {
             //Initialize the player class
             player = new Player();
+            cursorPos = Vector2.Zero;
             playerMoveSpeed = 8.0f;
 
             //Initialize foreground
@@ -92,8 +108,14 @@ namespace ShadowMain
 
             // Load UI
             font = Content.Load<SpriteFont>("DINFont");
-            recordFrame = Content.Load<Texture2D>("Misc\\recframe");
+            recordFrameTexture = Content.Load<Texture2D>("Misc\\recframe");
             cursorTexture = Content.Load<Texture2D>("Misc\\cursor");
+
+            // Load XUI
+            GameInput = new GameInput((int)E_UiButton.Count, (int)E_UiAxis.Count);
+            _UI.SetupControls(GameInput);
+            _UI.Startup(this, GameInput);
+            _UI.Screen.AddScreen(new UI.ScreenTest());
 
             // Load the player resources            
             Vector2 playerPosition = new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X, GraphicsDevice.Viewport.TitleSafeArea.Y + GraphicsDevice.Viewport.TitleSafeArea.Height / 2);
@@ -106,7 +128,8 @@ namespace ShadowMain
         /// </summary>
         protected override void UnloadContent()
         {
-            // TODO: Unload any non ContentManager content here
+            // XUI
+            _UI.Shutdown();
         }
 
         /// <summary>
@@ -116,11 +139,7 @@ namespace ShadowMain
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-            // Allows the game to exit
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
-                this.Exit();
-
-            // Save the previous state of the keyboard and game pad so we can determinesingle key/button presses
+            // Save the previous state of the keyboard and game pad so we can determine single key/button presses
             previousKeyboardState = currentKeyboardState;
 
             // Read the current state of the keyboard and gamepad and store it
@@ -134,7 +153,18 @@ namespace ShadowMain
             foreLayer2.Update();
 
             //Update UI
-            cursorPos = new Vector2(mouseState.X, mouseState.Y);
+            mouseState = Mouse.GetState();
+            cursorPos.X = mouseState.X;
+            cursorPos.Y = mouseState.Y;
+
+            //Update XUI
+            float frameTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            GameInput.Update(frameTime);
+            _UI.Sprite.BeginUpdate();
+            _UI.Screen.Update(frameTime);
+
+            //TEST
+            player.Position = SmoothMove(a, b, 5, gameTime);
 
             base.Update(gameTime);
         }
@@ -144,8 +174,8 @@ namespace ShadowMain
             KeyPressed();
             player.Position.X = MathHelper.Clamp(player.Position.X, 0, GraphicsDevice.Viewport.Width - player.Width);
             player.Position.Y = MathHelper.Clamp(player.Position.Y, 0, GraphicsDevice.Viewport.Height - player.Height);
-
         }
+
 
         private void AnimManager(GameTime gameTime)
         { }
@@ -158,7 +188,8 @@ namespace ShadowMain
                 elapsedTime = 1;
 
             float param = elapsedTime / animDuration;
-            return Vector2.Lerp(initPos, endPos, param);
+            return Vector2.Lerp(initPos, endPos, (float)Math.Pow(param / 2.0, 0.5));
+            
         }
 
         private void KeyPressed()
@@ -180,18 +211,21 @@ namespace ShadowMain
             {
                 player.Position.Y += playerMoveSpeed;
             }
-            // Spawn Menu
+            // Rec
             if (currentKeyboardState.IsKeyDown(Keys.Space))
             {
                 if (isRecording == false)
                 {
                     isRecording = true;
+                    recOpacity = 1.0f;
                 }
                 else
                 {
                     isRecording = false;
+                    recOpacity = 0.0f;
                 }
             }
+
 
 
         }
@@ -219,10 +253,15 @@ namespace ShadowMain
             foreLayer2.Draw(spriteBatch);
 
             // Draw UI
-            spriteBatch.Draw(cursorTexture, cursorPos, Color.White);
+            spriteBatch.Draw(cursorTexture, cursorPos, Color.White * 0.5f);
+            spriteBatch.Draw(recordFrameTexture, CenterScreen, Color.White * recOpacity);
+
 
             // Debug text
              spriteBatch.DrawString(font, "ramda", new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 100, GraphicsDevice.Viewport.TitleSafeArea.Y), Color.White);
+
+            // Draw XUI
+             _UI.Sprite.Render(0);
 
             //Stop drawing
             spriteBatch.End();
