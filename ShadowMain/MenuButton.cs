@@ -10,14 +10,15 @@ namespace ShadowMain
         Texture2D Texture;
         String Name;
         public Vector2 Position;
+        public Vector2 Hotspot;
         public bool IsSelected;
         public bool IsClicked;
         public float Scale;
-        int Width
+        public int Width
         {
             get { return Texture.Width; }
         }
-        int Height
+        public int Height
         { 
             get { return Texture.Height; } 
         }
@@ -26,10 +27,17 @@ namespace ShadowMain
         {
             Texture = texture;
             Position = position;
+            Hotspot = new Vector2(Width * 0.3f, Height * 0.5f);
             Name = name;
-            IsSelected = true;
+            IsSelected = false;
             IsClicked = false;
             Scale = 1.0f;
+        }
+
+        public void SetStatus(bool status)
+            //for now, selected status only
+        {
+            IsSelected = status;
         }
 
         public void Draw(SpriteBatch spriteBatch)
