@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Forms;
+//using System.Drawing;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
@@ -14,8 +16,10 @@ using AForge.Video.FFMPEG;
 
 namespace ShadowMain
 {
+
     public class Game1 : Microsoft.Xna.Framework.Game
     {
+
         //screen direction variable
         Vector2 CenterScreen, TopScreen, BottomScreen;
 
@@ -40,7 +44,6 @@ namespace ShadowMain
         Menu mainmenu;
 
         // Cursor & GUI layer
-        Player player;
         SpriteFont font;
         Texture2D cursorTexture;
         Vector2 cursorPos;
@@ -57,15 +60,25 @@ namespace ShadowMain
         string debugmsg = "";
 
         //TEST Screen Capture
-        ScapCapture Cap = new ScapCapture(false, 5);
+        ScapCapture Cap;
         bool isCapture = false;
+        int eT = 0;
+        int Xlocation = 0;
+        int Ylocation = 0;
 
         public Game1()
         {
+            //Form
+            //var form = (System.Windows.Forms.Form)System.Windows.Forms.Form.FromHandle(this.Window.Handle);
+            //form.Location = new System.Drawing.Point(0, 0);
+            //Control control = Control.FromHandle(this.Window.Handle);
+            //control 
+            //Graphics
             graphics = new GraphicsDeviceManager(this);
             // Set screen resolution to HD
             graphics.PreferredBackBufferHeight = Global.ScreenHeight;
             graphics.PreferredBackBufferWidth = Global.ScreenWidth;
+            
             CenterScreen = new Vector2(Global.ScreenWidth / 2, Global.ScreenHeight / 2);
             TopScreen = new Vector2(Global.ScreenWidth / 2, 0);
             BottomScreen = new Vector2(Global.ScreenWidth / 2, Global.ScreenHeight);
@@ -74,6 +87,13 @@ namespace ShadowMain
 
         protected override void Initialize()
         {
+            //Init form
+            var form = (System.Windows.Forms.Form)System.Windows.Forms.Form.FromHandle(this.Window.Handle);
+            form.Location = new System.Drawing.Point(0, 0);
+            Xlocation = form.Location.X;
+            Ylocation = form.Location.Y;
+            Cap = new ScapCapture(false, 5, 10, ScapVideoFormats.MPEG4, ScapImageFormats.Jpeg, Xlocation, Ylocation, 1280, 720);
+
             //Initialize cursor
             cursorPos = Vector2.Zero;
 
@@ -86,7 +106,6 @@ namespace ShadowMain
 
             //Init ScapLIB
             ScapBackendConfig.ScapBackendSetup(Cap);
-            ScapCore.StartCapture();
 
             base.Initialize();
         }
@@ -135,28 +154,43 @@ namespace ShadowMain
             DetectHover(gameTime);
 
             //Test Capture
+            eT++;
+            TimeTrigger(eT);
 
 
             base.Update(gameTime);
         }
 
-        public void TimeTrigger(GameTime gametime)
+        public void TimeTrigger(int time)
         {
-            if (elapsedTime == 7.0f) 
+            if (time == 60)
             {
-                ScapCore.StopCapture();
-                ScapCore.DecompressCapture(false);
+                ScapCore.StartCapture();
+                debugmsg = "start recording";
             }
 
-            if (ScapCore.GetDecompressionProgress() == 100)
+            if (time == 240) 
+            {
+                debugmsg = "stop recording";
+                ScapCore.StopCapture();
+                ScapCore.DecompressCapture(false);
+                debugmsg = "start decompressing";
+            }
+
+            if (time == 500)
             {
                 ScapCore.EncodeCapture(false);
-                if (ScapCore.GetEncodeProgress() == 100)
-                {
-                    Console.WriteLine("You just captured your first video Congrats");
-                }
+                debugmsg = "start encoding";
             }
+
+            if (ScapCore.GetEncodeProgress() == 1d)
+            {
+                debugmsg = "finished";
+            
+            }
+
         }
+      
 
         public void DetectHover(GameTime gameTime)
         {
@@ -216,7 +250,8 @@ namespace ShadowMain
             spriteBatch.Draw(recordFrameTexture, CenterScreen, Color.White * recOpacity);
 
             // Debug text
-             spriteBatch.DrawString(font, elapsedTime.ToString(), new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 100, GraphicsDevice.Viewport.TitleSafeArea.Y), Color.White);
+             spriteBatch.DrawString(font, eT.ToString(), new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 100, GraphicsDevice.Viewport.TitleSafeArea.Y), Color.White);
+             spriteBatch.DrawString(font, debugmsg, new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 300, GraphicsDevice.Viewport.TitleSafeArea.Y), Color.White);
 
             // Draw menu and button
              mainmenu.Draw(spriteBatch);
@@ -225,6 +260,7 @@ namespace ShadowMain
             spriteBatch.End();
 
             base.Draw(gameTime);
+
         }
     }
 }
