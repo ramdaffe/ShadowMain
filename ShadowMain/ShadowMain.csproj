@@ -129,6 +129,7 @@
     <Compile Include="Foreground.cs" />
     <Compile Include="Global.cs" />
     <Compile Include="Menu.cs" />
+    <Compile Include="Player.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Game1.cs" />

@@ -54,15 +54,11 @@ namespace ShadowMain
         Texture2D recordFrameTexture;
         float recOpacity = 0.0f;
 
-        //Kinect
-        KinectSensor kinect;
-        Texture2D colorVideo, depthVideo, jointTexture;
-        Skeleton[] skeletonData;
-        Skeleton skeleton;
+        // Player layer
+        Player player;
 
 
         // Debugging
-        bool debugging = true;
         string debugmsg = "";
         bool toggled = false;
 
@@ -103,24 +99,8 @@ namespace ShadowMain
             keyboard = new KeyControl();
 
             //Init Kinect
-            try
-            {
-                kinect = KinectSensor.KinectSensors[0];
-                //kinect.ColorStream.Enable(ColorImageFormat.RgbResolution640x480Fps30);
-                kinect.DepthStream.Enable(DepthImageFormat.Resolution320x240Fps30);
-                kinect.SkeletonStream.Enable();
-                kinect.AllFramesReady += new EventHandler<AllFramesReadyEventArgs>(kinect_AllFramesReady);
-
-                kinect.Start();
-                colorVideo = new Texture2D(graphics.GraphicsDevice, kinect.ColorStream.FrameWidth, kinect.ColorStream.FrameHeight);
-                depthVideo = new Texture2D(graphics.GraphicsDevice, kinect.DepthStream.FrameWidth, kinect.DepthStream.FrameHeight);
-                Debug.WriteLineIf(debugging, kinect.Status);
-            }
-            catch (Exception e)
-            {
-                debugmsg = "error";
-                Debug.WriteLine(e.ToString());
-            }
+            player = new Player();
+            player.Initialize(graphics);
 
             //Finally, base
             base.Initialize();
@@ -141,7 +121,8 @@ namespace ShadowMain
             stage.Initialize(Content);
 
             // Load Kinect joint marker
-            jointTexture = Content.Load<Texture2D>("Kinect\\joint");
+            player.LoadContent(Content);
+            
         }
 
         protected override void UnloadContent()
@@ -171,6 +152,9 @@ namespace ShadowMain
             eT++;
             KeyTrigger();
             //TimeTrigger(eT);
+
+            //debugmsg
+            debugmsg = player.status;
 
             base.Update(gameTime);
         }
@@ -252,7 +236,7 @@ namespace ShadowMain
             stage.Draw(spriteBatch);
 
             // Draw Skeleton
-            DrawSkeleton(spriteBatch, new Vector2(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), jointTexture);
+            player.Draw(spriteBatch);
             
             // Draw UI
             spriteBatch.Draw(cursorTexture, cursorPos, Color.White * 0.5f);
@@ -274,123 +258,20 @@ namespace ShadowMain
 
         }
 
-        void kinect_AllFramesReady(object sender, AllFramesReadyEventArgs imageFrames)
+        /*
+        private void DrawJoint(Joint joint)
         {
-            //
-            // Color Frame 
-            //
-            /*
-            //Get raw image
-            ColorImageFrame colorVideoFrame = imageFrames.OpenColorImageFrame();
-
-            if (colorVideoFrame != null)
+            if (joint.TrackingState == JointTrackingState.NotTracked)
             {
-                //Create array for pixel data and copy it from the image frame
-                Byte[] pixelData = new Byte[colorVideoFrame.PixelDataLength];
-                colorVideoFrame.CopyPixelDataTo(pixelData);
-
-                //Convert RGBA to BGRA
-                Byte[] bgraPixelData = new Byte[colorVideoFrame.PixelDataLength];
-                for (int i = 0; i < pixelData.Length; i += 4)
-                {
-                    bgraPixelData[i] = pixelData[i + 2];
-                    bgraPixelData[i + 1] = pixelData[i + 1];
-                    bgraPixelData[i + 2] = pixelData[i];
-                    bgraPixelData[i + 3] = (Byte)255; //The video comes with 0 alpha so it is transparent
-                }
-
-                // Create a texture and assign the realigned pixels
-                colorVideo = new Texture2D(graphics.GraphicsDevice, colorVideoFrame.Width, colorVideoFrame.Height);
-                colorVideo.SetData(bgraPixelData);
-            }*/
-
-            //
-            // Depth Frame
-            //
-            DepthImageFrame depthVideoFrame = imageFrames.OpenDepthImageFrame();
-
-            if (depthVideoFrame != null)
-            {
-                Debug.WriteLineIf(debugging, "Frame");
-                //Create array for pixel data and copy it from the image frame
-                short[] pixelData = new short[depthVideoFrame.PixelDataLength];
-                depthVideoFrame.CopyPixelDataTo(pixelData);
-
-                for (int i = 0; i < 10; i++)
-                { Debug.WriteLineIf(debugging, pixelData[i]); }
-
-                // Convert the Depth Frame
-                // Create a texture and assign the realigned pixels
-                //
-                depthVideo = new Texture2D(graphics.GraphicsDevice, depthVideoFrame.Width, depthVideoFrame.Height);
-                depthVideo.SetData(ConvertDepthFrame(pixelData, kinect.DepthStream));
-
+                return; // nothing to draw, one of the joints is not tracked
             }
 
-            //
-            // Skeleton Frame
-            //
-            using (SkeletonFrame skeletonFrame = imageFrames.OpenSkeletonFrame())
+            if (joint.TrackingState == JointTrackingState.Inferred ||
+            joint.TrackingState == JointTrackingState.Tracked)
             {
-                if (skeletonFrame != null)
-                {
-                    if ((skeletonData == null) || (this.skeletonData.Length != skeletonFrame.SkeletonArrayLength))
-                    {
-                        this.skeletonData = new Skeleton[skeletonFrame.SkeletonArrayLength];
-                    }
-
-                    //Copy the skeleton data to our array
-                    skeletonFrame.CopySkeletonDataTo(this.skeletonData);
-                }
+                Vector2 position = new Vector2(joint.Position.X, joint.Position.Y);
+                spriteBatch.Draw(img, new Rectangle(Convert.ToInt32(position.X), Convert.ToInt32(position.Y), 10, 10), Color.Red);
             }
-
-            if (skeletonData != null)
-            {
-                foreach (Skeleton skel in skeletonData)
-                {
-                    if (skel.TrackingState == SkeletonTrackingState.Tracked)
-                    {
-                        skeleton = skel;
-                    }
-                }
-            }
-
-        }
-
-        private void DrawSkeleton(SpriteBatch spriteBatch, Vector2 resolution, Texture2D img)
-        {
-            if (skeleton != null)
-            {
-                foreach (Joint joint in skeleton.Joints)
-                {
-                    Vector2 position = new Vector2((((0.5f * joint.Position.X) + 0.5f) * (resolution.X)), (((-0.5f * joint.Position.Y) + 0.5f) * (resolution.Y)));
-                    spriteBatch.Draw(img, new Rectangle(Convert.ToInt32(position.X), Convert.ToInt32(position.Y), 10, 10), Color.Red);
-                }
-            }
-        }
-
-        private byte[] ConvertDepthFrame(short[] depthFrame, DepthImageStream depthStream)
-        {
-            int RedIndex = 0, GreenIndex = 1, BlueIndex = 2, AlphaIndex = 3;
-
-            byte[] depthFrame32 = new byte[depthStream.FrameWidth * depthStream.FrameHeight * 4];
-
-            for (int i16 = 0, i32 = 0; i16 < depthFrame.Length && i32 < depthFrame32.Length; i16++, i32 += 4)
-            {
-                int player = depthFrame[i16] & DepthImageFrame.PlayerIndexBitmask;
-                int realDepth = depthFrame[i16] >> DepthImageFrame.PlayerIndexBitmaskWidth;
-
-                // transform 13-bit depth information into an 8-bit intensity appropriate
-                // for display (we disregard information in most significant bit)
-                byte intensity = (byte)(~(realDepth >> 4));
-
-                depthFrame32[i32 + RedIndex] = (byte)(intensity);
-                depthFrame32[i32 + GreenIndex] = (byte)(intensity);
-                depthFrame32[i32 + BlueIndex] = (byte)(intensity);
-                depthFrame32[i32 + AlphaIndex] = 255;
-            }
-
-            return depthFrame32;
-        }
+        }*/
     }
 }

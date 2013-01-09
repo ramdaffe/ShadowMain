@@ -14,5 +14,14 @@ Content\Button\menu_help.xnb
 Content\Button\menu_load.xnb
 Content\Button\menu_new.xnb
 Content\Kinect\joint.xnb
+Content\Kinect\head.xnb
+Content\Kinect\leftarm-lower.xnb
+Content\Kinect\leftarm-upper.xnb
+Content\Kinect\lefthand.xnb
+Content\Kinect\pelvis.xnb
+Content\Kinect\rightarm-lower.xnb
+Content\Kinect\rightarm-upper.xnb
+Content\Kinect\righthand.xnb
+Content\Kinect\upper torso.xnb
 Content\Sound\gameMusic.wma
 Content\Sound\menuMusic.wma
