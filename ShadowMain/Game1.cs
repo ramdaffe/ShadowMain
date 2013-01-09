@@ -24,10 +24,11 @@ namespace ShadowMain
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         
-        // XNA Input: mouse states and keyboard states
+        // XNA Input: mouse states
         MouseState mouseState;
-        KeyboardState currentKeyboardState;
-        KeyboardState previousKeyboardState;
+
+        // Keyboard Input
+        KeyControl keyboard;
 
         //Time counter
         float elapsedTime = 0;
@@ -45,7 +46,7 @@ namespace ShadowMain
         SpriteFont font;
         Texture2D cursorTexture;
         Vector2 cursorPos;
-        int SelectedID;
+        int SelectedID = 3;
 
         // Record layer
         Texture2D recordFrameTexture;
@@ -53,6 +54,7 @@ namespace ShadowMain
 
         // Debugging
         string debugmsg = "";
+        bool toggled = false;
 
         // Counter
         int eT = 0;
@@ -86,6 +88,9 @@ namespace ShadowMain
             //Init ScapLIB
             rec = new Recorder();
             rec.Initialize(0, 0);
+
+            //Init input handling
+            keyboard = new KeyControl();
             
             //Finally, base
             base.Initialize();
@@ -113,8 +118,7 @@ namespace ShadowMain
         protected override void Update(GameTime gameTime)
         {
             // Save previous keyboard state into temporary values and read the current new one
-            previousKeyboardState = currentKeyboardState;
-            currentKeyboardState = Keyboard.GetState();
+            keyboard.Update();
             
             //Update UI
             mouseState = Mouse.GetState();
@@ -128,15 +132,29 @@ namespace ShadowMain
             mainmenu.Update();
 
             //Detect Hover
-            DetectHover(gameTime);
+            DetectHover();
 
             //Counter
             eT++;
-            TimeTrigger(eT);
+            KeyTrigger();
+            //TimeTrigger(eT);
 
             base.Update(gameTime);
         }
-
+        public void KeyTrigger()
+        {
+            if (keyboard.IsToggled(Microsoft.Xna.Framework.Input.Keys.Space) && !toggled)
+            {
+                toggled = true;
+                debugmsg = "toggled";
+            }
+            if (toggled && keyboard.currentKeyboardState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Space))
+            {
+                debugmsg = "";
+                toggled = false;
+            }
+                
+        }
         public void TimeTrigger(int time)
         {
             if (time == 60)
@@ -161,31 +179,22 @@ namespace ShadowMain
                 debugmsg = "finished";
             }
         }
-      
 
-        public void DetectHover(GameTime gameTime)
+
+        public void DetectHover()
         {
-            //TEST HOVER
-            //new button
-            SelectedID = 0;
-            if (Vector2.Distance(cursorPos, mainmenu.NewButtonHotPos) < Global.HoverTolerance)
+            if (Vector2.Distance(cursorPos, mainmenu.NewButton.Hotspot) < Global.HoverTolerance)
             {
-                //mainmenu.SetSelected(1);
-                SelectedID = 1;
-                mainmenu.SetNew(Vector2.Zero);
+                mainmenu.selButtonID = 1;
             }
-            
-            if (Vector2.Distance(cursorPos, mainmenu.LoadButtonHotPos) < Global.HoverTolerance)
+            if (Vector2.Distance(cursorPos, mainmenu.LoadButton.Hotspot) < Global.HoverTolerance)
             {
-                //mainmenu.SetSelected(2);
-                SelectedID = 2;
+                mainmenu.selButtonID = 2;
             }
-             if (Vector2.Distance(cursorPos, mainmenu.HelpButtonHotPos) < Global.HoverTolerance)
+             if (Vector2.Distance(cursorPos, mainmenu.HelpButton.Hotspot) < Global.HoverTolerance)
             {
-                //mainmenu.SetSelected(3);
-                SelectedID = 3;
+                mainmenu.selButtonID = 3;
             }
-            //SelectedID = mainmenu.GetSelected();
         }
 
         private Vector2 SmoothMove(Vector2 initPos, Vector2 endPos, int animDuration, GameTime gameTime)
@@ -214,8 +223,10 @@ namespace ShadowMain
             //spriteBatch.Draw(recordFrameTexture, CenterScreen, Color.White * recOpacity);
 
             // Debug text
-             spriteBatch.DrawString(font, eT.ToString(), new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 100, GraphicsDevice.Viewport.TitleSafeArea.Y), Color.White);
-             spriteBatch.DrawString(font, debugmsg, new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 300, GraphicsDevice.Viewport.TitleSafeArea.Y), Color.White);
+            spriteBatch.DrawString(font, mainmenu.NewButton.Hotspot.ToString(), new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 100, GraphicsDevice.Viewport.TitleSafeArea.Y), Color.White);
+            spriteBatch.DrawString(font, mainmenu.selButtonID.ToString(), new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 100, GraphicsDevice.Viewport.TitleSafeArea.Y + 200), Color.White);
+            spriteBatch.DrawString(font, cursorPos.ToString(), new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 100, GraphicsDevice.Viewport.TitleSafeArea.Y + 300), Color.White);
+            spriteBatch.DrawString(font, debugmsg,new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 300, GraphicsDevice.Viewport.TitleSafeArea.Y), Color.White);
 
             // Draw menu and button
              mainmenu.Draw(spriteBatch);

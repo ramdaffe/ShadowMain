@@ -33,6 +33,18 @@ namespace ShadowMain
             ScapCore.EncodeCapture(false);
         }
 
+        public bool IsDecompressFinished()
+        {
+            if (ScapCore.GetDecompressionProgress() == 1d)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         public bool IsEncodeFinished()
         {
             if (ScapCore.GetEncodeProgress() == 1d)

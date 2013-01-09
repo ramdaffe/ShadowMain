@@ -17,7 +17,6 @@ namespace ShadowMain
         Texture2D StaticBG;
         Foreground ForeLayer1;
         Foreground ForeLayer2;
-        Vector2 Position;
         
         public void Initialize(ContentManager content)
         {

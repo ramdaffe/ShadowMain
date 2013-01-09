@@ -10,6 +10,7 @@ namespace ShadowMain
         Texture2D Texture;
         String Name;
         public Vector2 Position;
+        public Vector2 HoverPosition;
         public Vector2 Hotspot;
         public bool IsSelected;
         public bool IsClicked;
@@ -19,25 +20,31 @@ namespace ShadowMain
             get { return Texture.Width; }
         }
         public int Height
-        { 
-            get { return Texture.Height; } 
+        {
+            get { return Texture.Height; }
         }
-
-        public void Initialize(Texture2D texture, Vector2 position, string name)
+        public MenuButton(Texture2D texture, Vector2 position,string name)
         {
             Texture = texture;
             Position = position;
-            Hotspot = new Vector2(Width * 0.3f, Height * 0.5f);
+            Hotspot = Vector2.Add(new Vector2(Width * 0.3f, Height * 0.5f),position);
             Name = name;
             IsSelected = false;
             IsClicked = false;
             Scale = 1.0f;
+            HoverPosition = position;
         }
 
-        public void SetStatus(bool status)
+
+        public void SetSelected(bool status)
             //for now, selected status only
         {
             IsSelected = status;
+        }
+
+        public void SetPos(Vector2 pos)
+        {
+            Position = pos;
         }
 
         public void Draw(SpriteBatch spriteBatch)

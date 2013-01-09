@@ -8,81 +8,61 @@ namespace ShadowMain
     class Menu
     {
         public Texture2D Logo;
-        MenuButton NewButton;
-        MenuButton LoadButton;
-        MenuButton HelpButton;
-        public int selButtonID;
+        public MenuButton NewButton;
+        public MenuButton LoadButton;
+        public MenuButton HelpButton;
+        public int selButtonID = 0;
         
+        //Initial value
+        public Vector2 InitNewButtonPos = new Vector2(750, 150);
+        public Vector2 InitLoadButtonPos = new Vector2(750, 300);
+        public Vector2 InitHelpButtonPos = new Vector2(750, 450);
 
-        //positions
-        public Vector2 NewButtonPos;
-        public Vector2 LoadButtonPos;
-        public Vector2 HelpButtonPos;
-
-        //hostpot
-        public Vector2 NewButtonHotPos;
-        public Vector2 LoadButtonHotPos;
-        public Vector2 HelpButtonHotPos;
-
-        bool MenuState = true;
 
         public void Initialize(ContentManager content)
         {
-            NewButtonPos = new Vector2(750, 150);
-            LoadButtonPos = new Vector2(750, 300);
-            HelpButtonPos = new Vector2(750, 450);
-            NewButton = new MenuButton();
-            LoadButton = new MenuButton();
-            HelpButton = new MenuButton();
-            NewButton.Initialize(content.Load<Texture2D>("Button\\menu_new"), NewButtonPos, "new");
-            LoadButton.Initialize(content.Load<Texture2D>("Button\\menu_load"), LoadButtonPos, "load");
-            HelpButton.Initialize(content.Load<Texture2D>("Button\\menu_help"), HelpButtonPos, "help");
-            NewButtonHotPos = NewButton.Hotspot + NewButtonPos;
-            LoadButtonHotPos = LoadButton.Hotspot + LoadButtonPos;
-            HelpButtonHotPos = HelpButton.Hotspot + HelpButtonPos;
-            selButtonID = 0;
+            NewButton = new MenuButton(content.Load<Texture2D>("Button\\menu_new"), InitNewButtonPos,"new");
+            LoadButton = new MenuButton(content.Load<Texture2D>("Button\\menu_load"), InitLoadButtonPos, "load");
+            HelpButton = new MenuButton(content.Load<Texture2D>("Button\\menu_help"), InitHelpButtonPos, "help");
+            NewButton.HoverPosition = Vector2.Add(NewButton.Position, new Vector2(-30, 0));
+            LoadButton.HoverPosition = Vector2.Add(LoadButton.Position, new Vector2(-30, 0));
+            HelpButton.HoverPosition = Vector2.Add(HelpButton.Position, new Vector2(-30, 0));
         }
 
-        public void SetSelected(int selectID)
+        public Vector2 Hover(Vector2 pos)
         {
-            switch(selectID)
-            {
-                case 1:
-                    NewButton.SetStatus(true);
-                    LoadButton.SetStatus(false);
-                    HelpButton.SetStatus(false);
-                    selButtonID = selectID;
-                    break;
-                case 2:
-                    NewButton.SetStatus(false);
-                    LoadButton.SetStatus(true);
-                    HelpButton.SetStatus(false);
-                    selButtonID = selectID;
-                    break;
-                case 3:
-                    NewButton.SetStatus(false);
-                    LoadButton.SetStatus(false);
-                    HelpButton.SetStatus(true);
-                    selButtonID = selectID;
-                    break;
-                default:
-                    break;
-            }
+            return pos = Vector2.Add(pos, new Vector2(-30, 0));
         }
 
-        public int GetSelected()
+        public void ResetAllPos()
         {
-            return selButtonID;
-        }
-
-        public void SetNew(Vector2 newpos)
-        {
-            NewButtonPos = newpos;
+            NewButton.Position = InitNewButtonPos;
+            LoadButton.Position = InitLoadButtonPos;
+            HelpButton.Position = InitHelpButtonPos;
         }
 
         public void Update()
         {
-
+            switch(selButtonID){
+                case 1:
+                    NewButton.Position = NewButton.HoverPosition;
+                    LoadButton.Position = InitLoadButtonPos;
+                    HelpButton.Position = InitHelpButtonPos;
+                    break;
+                case 2:
+                    LoadButton.Position = LoadButton.HoverPosition;
+                    NewButton.Position = InitNewButtonPos;
+                    HelpButton.Position = InitHelpButtonPos;
+                    break;
+                case 3:
+                    HelpButton.Position = HelpButton.HoverPosition;
+                    NewButton.Position = InitNewButtonPos;
+                    LoadButton.Position = InitLoadButtonPos;
+                    break;
+                default:
+                    ResetAllPos();
+                    break;
+            }
         }
 
         public void Draw(SpriteBatch spriteBatch)
