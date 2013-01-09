@@ -20,9 +20,6 @@ namespace ShadowMain
     public class Game1 : Microsoft.Xna.Framework.Game
     {
 
-        //screen direction variable
-        Vector2 CenterScreen, TopScreen, BottomScreen;
-
         // XNA Graphics
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
@@ -35,13 +32,14 @@ namespace ShadowMain
         //Time counter
         float elapsedTime = 0;
 
-        //Main layers
-        Texture2D staticBG;
-        Foreground foreLayer1;
-        Foreground foreLayer2;
-
         // Menu layer
         Menu mainmenu;
+
+        // Stage layer
+        Stage stage;
+
+        // Recorder module
+        Recorder rec;
 
         // Cursor & GUI layer
         SpriteFont font;
@@ -51,37 +49,22 @@ namespace ShadowMain
 
         // Record layer
         Texture2D recordFrameTexture;
-        bool isRecording = false;
         float recOpacity = 0.0f;
 
-        // TEST
-        Vector2 a = new Vector2(0, 0);
-        Vector2 b = new Vector2(0, 600);
+        // Debugging
         string debugmsg = "";
 
-        //TEST Screen Capture
-        ScapCapture Cap;
-        bool isCapture = false;
+        // Counter
         int eT = 0;
-        int Xlocation = 0;
-        int Ylocation = 0;
 
         public Game1()
         {
-            //Form
-            //var form = (System.Windows.Forms.Form)System.Windows.Forms.Form.FromHandle(this.Window.Handle);
-            //form.Location = new System.Drawing.Point(0, 0);
-            //Control control = Control.FromHandle(this.Window.Handle);
-            //control 
-            //Graphics
+            // Start graphic
             graphics = new GraphicsDeviceManager(this);
-            // Set screen resolution to HD
             graphics.PreferredBackBufferHeight = Global.ScreenHeight;
             graphics.PreferredBackBufferWidth = Global.ScreenWidth;
-            
-            CenterScreen = new Vector2(Global.ScreenWidth / 2, Global.ScreenHeight / 2);
-            TopScreen = new Vector2(Global.ScreenWidth / 2, 0);
-            BottomScreen = new Vector2(Global.ScreenWidth / 2, Global.ScreenHeight);
+
+            // Point content
             Content.RootDirectory = "Content";
         }
 
@@ -90,23 +73,21 @@ namespace ShadowMain
             //Init form
             var form = (System.Windows.Forms.Form)System.Windows.Forms.Form.FromHandle(this.Window.Handle);
             form.Location = new System.Drawing.Point(0, 0);
-            Xlocation = form.Location.X;
-            Ylocation = form.Location.Y;
-            Cap = new ScapCapture(false, 5, 10, ScapVideoFormats.MPEG4, ScapImageFormats.Jpeg, Xlocation, Ylocation, 1280, 720);
 
             //Initialize cursor
             cursorPos = Vector2.Zero;
 
-            //Initialize foreground layer
-            foreLayer1 = new Foreground();
-            foreLayer2 = new Foreground();
+            //Initialize stage
+            stage = new Stage();
 
             //Initialize menu layer
             mainmenu = new Menu();
 
             //Init ScapLIB
-            ScapBackendConfig.ScapBackendSetup(Cap);
-
+            rec = new Recorder();
+            rec.Initialize(0, 0);
+            
+            //Finally, base
             base.Initialize();
         }
 
@@ -115,20 +96,14 @@ namespace ShadowMain
             // create a new spritebatch
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            // Load background layer content
-            staticBG = Content.Load<Texture2D>("Background\\bg1");
-
-            // Load foreground layer content
-            foreLayer1.Initialize(Content, "Foreground\\fg1", new Vector2(0,0));
-            foreLayer2.Initialize(Content, "Foreground\\fg2", new Vector2(0,0));
-
-            // Load Record layer content
+            // load main UI asset
             font = Content.Load<SpriteFont>("DINFont");
             recordFrameTexture = Content.Load<Texture2D>("Misc\\recframe");
             cursorTexture = Content.Load<Texture2D>("Misc\\cursor");
 
             // Load Menu
             mainmenu.Initialize(Content);
+            stage.Initialize(Content);
         }
 
         protected override void UnloadContent()
@@ -141,22 +116,23 @@ namespace ShadowMain
             previousKeyboardState = currentKeyboardState;
             currentKeyboardState = Keyboard.GetState();
             
-            //Update foreground
-            foreLayer1.Update();
-            foreLayer2.Update();
-
             //Update UI
             mouseState = Mouse.GetState();
             cursorPos.X = mouseState.X;
             cursorPos.Y = mouseState.Y;
 
+            //Update Stage
+            stage.Update();
+
+            //Menu Update
+            mainmenu.Update();
+
             //Detect Hover
             DetectHover(gameTime);
 
-            //Test Capture
+            //Counter
             eT++;
             TimeTrigger(eT);
-
 
             base.Update(gameTime);
         }
@@ -165,30 +141,25 @@ namespace ShadowMain
         {
             if (time == 60)
             {
-                ScapCore.StartCapture();
+                rec.Record();
                 debugmsg = "start recording";
             }
 
-            if (time == 240) 
+            if (time == 240)
             {
-                debugmsg = "stop recording";
-                ScapCore.StopCapture();
-                ScapCore.DecompressCapture(false);
-                debugmsg = "start decompressing";
+                rec.StopAndDecompress();
+                debugmsg = "decompressing";
             }
 
             if (time == 500)
             {
-                ScapCore.EncodeCapture(false);
-                debugmsg = "start encoding";
+                rec.Encode();
+                debugmsg = "encoding";
             }
-
-            if (ScapCore.GetEncodeProgress() == 1d)
+            if (rec.IsEncodeFinished())
             {
                 debugmsg = "finished";
-            
             }
-
         }
       
 
@@ -217,9 +188,6 @@ namespace ShadowMain
             //SelectedID = mainmenu.GetSelected();
         }
 
-        private void AnimManager(GameTime gameTime)
-        { }
-
         private Vector2 SmoothMove(Vector2 initPos, Vector2 endPos, int animDuration, GameTime gameTime)
         {
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -238,16 +206,12 @@ namespace ShadowMain
             // Start drawing
             spriteBatch.Begin();
 
-            // Draw background
-            spriteBatch.Draw(staticBG, Vector2.Zero, Color.White);
+            // Draw stage
+            stage.Draw(spriteBatch);
             
-            // Draw foreground
-            foreLayer1.Draw(spriteBatch);
-            foreLayer2.Draw(spriteBatch);
-
             // Draw UI
             spriteBatch.Draw(cursorTexture, cursorPos, Color.White * 0.5f);
-            spriteBatch.Draw(recordFrameTexture, CenterScreen, Color.White * recOpacity);
+            //spriteBatch.Draw(recordFrameTexture, CenterScreen, Color.White * recOpacity);
 
             // Debug text
              spriteBatch.DrawString(font, eT.ToString(), new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 100, GraphicsDevice.Viewport.TitleSafeArea.Y), Color.White);
