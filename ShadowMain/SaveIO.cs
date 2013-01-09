@@ -29,7 +29,6 @@ namespace ShadowMain
             NotSaving,
             ReadyToSelectStorageDevice,
             SelectingStorageDevice,
-
             ReadyToOpenStorageContainer,    // once we have a storage device start here
             OpeningStorageContainer,
             ReadyToSave
@@ -42,27 +41,25 @@ namespace ShadowMain
         string filename = "savegame.sav";
         SaveData saveGameData = new SaveData()
         {
-            bgID = "a",
-            skinID = "b",
-            foreID = "c"
+            bgID = "x",
+            skinID = "y",
+            foreID = "z"
         };
 
-        private void UpdateSaveKey()
+        public void UpdateSaveKey()
         {
                 if (savingState == SavingState.NotSaving)
                 {
                     savingState = SavingState.ReadyToOpenStorageContainer;
+                    Debug.WriteLine("SaveCompleted!");
                 }
         }
 
-        private void UpdateSaving()
+        public void UpdateSaving()
         {
             switch (savingState)
             {
                 case SavingState.ReadyToSelectStorageDevice:
-#if XBOX
-                    if (!Guide.IsVisible)
-#endif
                     {
                         asyncResult = StorageDevice.BeginShowSelector(playerIndex, null, null);
                         savingState = SavingState.SelectingStorageDevice;
@@ -140,13 +137,6 @@ namespace ShadowMain
                 XmlSerializer serializer = new XmlSerializer(typeof(SaveData));
                 serializer.Serialize(stream, saveGameData);
             }
-        }
-
-        public void Update()
-        {
-            //save
-            //UpdateSaveKey();
-            UpdateSaving();
         }
 
     }

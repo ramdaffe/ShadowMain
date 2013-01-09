@@ -34,9 +34,14 @@ namespace ShadowMain
             return keyToggleList.Find(x => x.key == key).IsEnabled();
         }*/
 
+        public bool isPressed(Keys key)
+        {
+            return (!previousKeyboardState.IsKeyDown(key) && currentKeyboardState.IsKeyDown(key)) ;
+        }
+
         public bool IsToggled(Keys key)
         {
-            if (currentKeyboardState.IsKeyDown(key) && previousKeyboardState.IsKeyUp(key))
+            if (currentKeyboardState.IsKeyDown(key) && !previousKeyboardState.IsKeyUp(key))
             {
                 return true;
             }

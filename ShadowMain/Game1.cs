@@ -61,6 +61,36 @@ namespace ShadowMain
         // Player layer
         Player player;
 
+        //Save IO
+        // Savedata structure - IN PROGRESS
+        public struct SaveData
+        {
+            public string bgID;
+            public string skinID;
+            public string foreID;
+        }
+        enum SavingState
+        {
+            NotSaving,
+            ReadyToSelectStorageDevice,
+            SelectingStorageDevice,
+            ReadyToOpenStorageContainer,
+            OpeningStorageContainer,
+            ReadyToSave
+        }
+        StorageDevice storageDevice;
+        SavingState savingState = SavingState.NotSaving;
+        IAsyncResult asyncResult;
+        PlayerIndex playerIndex = PlayerIndex.One;
+        StorageContainer storageContainer;
+        string filename = "savegame.sav";
+        SaveData saveGameData = new SaveData()
+        {
+            bgID = "x",
+            skinID = "y",
+            foreID = "z"
+        };
+
         // Debugging
         string debugmsg = "";
         bool toggled = false;
@@ -161,14 +191,14 @@ namespace ShadowMain
             //debugmsg
             debugmsg = player.status;
 
-
+            //save
+            UpdateSaveKey(Microsoft.Xna.Framework.Input.Keys.F1);
+            UpdateSaving();
 
             base.Update(gameTime);
         }
 
 
-
-        
 
         public void KeyTrigger()
         {
@@ -270,20 +300,104 @@ namespace ShadowMain
 
         }
 
-        /*
-        private void DrawJoint(Joint joint)
-        {
-            if (joint.TrackingState == JointTrackingState.NotTracked)
-            {
-                return; // nothing to draw, one of the joints is not tracked
-            }
 
-            if (joint.TrackingState == JointTrackingState.Inferred ||
-            joint.TrackingState == JointTrackingState.Tracked)
+        /// <summary>
+        /// Helper methods : Save/Load
+        /// </summary>
+        public void UpdateSaveKey(Microsoft.Xna.Framework.Input.Keys key)
+        {
+            if (keyboard.isPressed(key))
             {
-                Vector2 position = new Vector2(joint.Position.X, joint.Position.Y);
-                spriteBatch.Draw(img, new Rectangle(Convert.ToInt32(position.X), Convert.ToInt32(position.Y), 10, 10), Color.Red);
+                if (savingState == SavingState.NotSaving)
+                {
+                    savingState = SavingState.ReadyToOpenStorageContainer;
+                    Debug.WriteLine("Updatesavekey");
+                }
             }
-        }*/
+        }
+
+        public void UpdateSaving()
+        {
+            switch (savingState)
+            {
+                case SavingState.ReadyToSelectStorageDevice:
+                    {
+                        asyncResult = StorageDevice.BeginShowSelector(playerIndex, null, null);
+                        savingState = SavingState.SelectingStorageDevice;
+                    }
+                    break;
+
+                case SavingState.SelectingStorageDevice:
+                    if (asyncResult.IsCompleted)
+                    {
+                        storageDevice = StorageDevice.EndShowSelector(asyncResult);
+                        savingState = SavingState.ReadyToOpenStorageContainer;
+                    }
+                    break;
+
+                case SavingState.ReadyToOpenStorageContainer:
+                    if (storageDevice == null || !storageDevice.IsConnected)
+                    {
+                        savingState = SavingState.ReadyToSelectStorageDevice;
+                    }
+                    else
+                    {
+                        asyncResult = storageDevice.BeginOpenContainer("Game1StorageContainer", null, null);
+                        savingState = SavingState.OpeningStorageContainer;
+                    }
+                    break;
+
+                case SavingState.OpeningStorageContainer:
+                    if (asyncResult.IsCompleted)
+                    {
+                        storageContainer = storageDevice.EndOpenContainer(asyncResult);
+                        savingState = SavingState.ReadyToSave;
+                    }
+                    break;
+
+                case SavingState.ReadyToSave:
+                    if (storageContainer == null)
+                    {
+                        savingState = SavingState.ReadyToOpenStorageContainer;
+                    }
+                    else
+                    {
+                        try
+                        {
+                            DeleteExisting();
+                            Save();
+                        }
+                        catch (IOException e)
+                        {
+                            // Replace with in game dialog notifying user of error
+                            Debug.WriteLine(e.Message);
+                        }
+                        finally
+                        {
+                            storageContainer.Dispose();
+                            storageContainer = null;
+                            savingState = SavingState.NotSaving;
+                        }
+                    }
+                    break;
+            }
+        }
+
+        private void DeleteExisting()
+        {
+            if (storageContainer.FileExists(filename))
+            {
+                storageContainer.DeleteFile(filename);
+            }
+        }
+
+        private void Save()
+        {
+            using (Stream stream = storageContainer.CreateFile(filename))
+            {
+                XmlSerializer serializer = new XmlSerializer(typeof(SaveData));
+                serializer.Serialize(stream, saveGameData);
+            }
+        }
     }
 }
