@@ -112,7 +112,7 @@ namespace ShadowMain
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // load main UI asset
-            font = Content.Load<SpriteFont>("DINFont");
+            font = Content.Load<SpriteFont>("gameFont");
             recordFrameTexture = Content.Load<Texture2D>("Misc\\recframe");
             cursorTexture = Content.Load<Texture2D>("Misc\\cursor");
 

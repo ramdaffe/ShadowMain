@@ -19,6 +19,7 @@ namespace ShadowMain
         //Kinect
         KinectSensor kinect;
         Texture2D colorVideo, depthVideo, jointTexture, headTexture;
+        Texture2D[] skin = new Texture2D[5];
         Skeleton[] skeletonData;
         Skeleton skeleton;
         public string status = "";
@@ -50,7 +51,12 @@ namespace ShadowMain
         public void LoadContent(ContentManager content)
         {
             jointTexture = content.Load<Texture2D>("Kinect\\joint");
-            headTexture = content.Load<Texture2D>("Kinect\\head");
+            skin[0] = content.Load<Texture2D>("Kinect\\head");
+            skin[1] = content.Load<Texture2D>("Kinect\\upper torso");
+            skin[2] = content.Load<Texture2D>("Kinect\\pelvis");
+            skin[3] = content.Load<Texture2D>("Kinect\\leftarm-upper");
+            skin[4] = content.Load<Texture2D>("Kinect\\rightarm-upper");
+
         }
 
         public void Draw(SpriteBatch spriteBatch)
@@ -145,20 +151,33 @@ namespace ShadowMain
         {
             if (skeleton != null)
             {
-                
                 foreach (Joint joint in skeleton.Joints)
+                    
                 {
-                    DrawJoint(spriteBatch, skeleton.Joints[JointType.Head],resolution, headTexture);
+                    DrawJoint(spriteBatch, skeleton.Joints[JointType.Head], resolution, skin[0], skin[0].Bounds.Center.X,skin[0].Bounds.Center.Y);
+                    DrawJoint(spriteBatch, skeleton.Joints[JointType.ShoulderCenter], resolution, skin[1],0,0);
+                    DrawJoint(spriteBatch, skeleton.Joints[JointType.HipCenter], resolution, skin[2], 0, 0);
+                    DrawJoint(spriteBatch, skeleton.Joints[JointType.ShoulderLeft], resolution, skin[3], 0, 0);
+                    DrawJoint(spriteBatch, skeleton.Joints[JointType.ShoulderRight], resolution, skin[4], 0, 0);
+                    Vector2 position = new Vector2((((0.5f * joint.Position.X) + 0.5f) * (resolution.X)), (((-0.5f * joint.Position.Y) + 0.5f) * (resolution.Y)));
+                    //Vector2 position = new Vector2(0.5f * joint.Position.X * resolution.X, -0.5f * joint.Position.Y * resolution.Y);
+                    spriteBatch.Draw(img, new Rectangle(Convert.ToInt32(position.X), Convert.ToInt32(position.Y), 10, 10), Color.Red);
                 }
+                
                 
             }
 
         }
 
-        private void DrawJoint(SpriteBatch spriteBatch, Joint joint, Vector2 resolution, Texture2D img)
+        private void DrawJoint(SpriteBatch spriteBatch, Joint joint, Vector2 resolution,Texture2D img, int offsetX, int offsetY)
         {
-            Vector2 position = new Vector2((((0.5f * joint.Position.X) + 0.5f) * (resolution.X)), (((-0.5f * joint.Position.Y) + 0.5f) * (resolution.Y)));    
+            //int offsetX, offsetY = 0;
+            //float offsetX = img.Width / 2;
+            //float offsetY = img.Height / 2;
+            Vector2 position = new Vector2((((0.5f * joint.Position.X) + 0.5f) * (resolution.X)) + offsetX, (((-0.5f * joint.Position.Y) + 0.5f) * (resolution.Y)) + offsetY);
+            //Vector2 position = new Vector2(joint.Position.X * resolution.X, joint.Position.Y * resolution.Y);
             spriteBatch.Draw(img, position, Color.White);
+
         }
 
         private byte[] ConvertDepthFrame(short[] depthFrame, DepthImageStream depthStream)
