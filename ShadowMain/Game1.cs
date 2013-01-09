@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
 using System.Windows.Forms;
+using System.IO;
+using System.Threading;
+using System.Xml.Serialization;
 //using System.Drawing;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
@@ -11,6 +14,7 @@ using Microsoft.Xna.Framework.GamerServices;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
+using Microsoft.Xna.Framework.Storage;
 using Microsoft.Kinect;
 using ScapLIB;
 using AForge.Video;
@@ -57,10 +61,10 @@ namespace ShadowMain
         // Player layer
         Player player;
 
-
         // Debugging
         string debugmsg = "";
         bool toggled = false;
+
 
         // Counter
         int eT = 0;
@@ -132,7 +136,8 @@ namespace ShadowMain
         protected override void Update(GameTime gameTime)
         {
             // Save previous keyboard state into temporary values and read the current new one
-            keyboard.Update();
+            keyboard.previousKeyboardState = keyboard.currentKeyboardState;
+            keyboard.currentKeyboardState = Keyboard.GetState();
             
             //Update UI
             mouseState = Mouse.GetState();
@@ -156,8 +161,15 @@ namespace ShadowMain
             //debugmsg
             debugmsg = player.status;
 
+
+
             base.Update(gameTime);
         }
+
+
+
+        
+
         public void KeyTrigger()
         {
             if (keyboard.IsToggled(Microsoft.Xna.Framework.Input.Keys.Space) && !toggled)

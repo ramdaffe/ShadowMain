@@ -48,8 +48,7 @@ namespace ShadowMain
 
         public void Update()
         {
-            previousKeyboardState = currentKeyboardState;
-            currentKeyboardState = Keyboard.GetState();
+            
         }
         
     }
