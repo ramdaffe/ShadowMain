@@ -16,6 +16,7 @@ using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 using Microsoft.Xna.Framework.Storage;
 using Microsoft.Kinect;
+//using Microsoft.Speech; -> need x86 version, not x64
 using ScapLIB;
 using AForge.Video;
 using AForge.Video.FFMPEG;
@@ -171,8 +172,13 @@ namespace ShadowMain
             
             //Update UI
             mouseState = Mouse.GetState();
-            cursorPos.X = mouseState.X;
-            cursorPos.Y = mouseState.Y;
+            if (player.ready)
+            {
+                player.Update();
+                cursorPos.X = player.pointerPosX;
+                cursorPos.Y = player.pointerPosY;            
+            }
+
 
             //Update Stage
             stage.Update();
@@ -287,11 +293,11 @@ namespace ShadowMain
             // Debug text
             spriteBatch.DrawString(font, mainmenu.NewButton.Hotspot.ToString(), new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 100, GraphicsDevice.Viewport.TitleSafeArea.Y), Color.White);
             spriteBatch.DrawString(font, mainmenu.selButtonID.ToString(), new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 100, GraphicsDevice.Viewport.TitleSafeArea.Y + 200), Color.White);
-            spriteBatch.DrawString(font, player.q.ToString(), new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 100, GraphicsDevice.Viewport.TitleSafeArea.Y + 300), Color.White);
+            spriteBatch.DrawString(font, player.pointerPosX.ToString() + player.pointerPosY.ToString(), new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 100, GraphicsDevice.Viewport.TitleSafeArea.Y + 300), Color.White);
             spriteBatch.DrawString(font, debugmsg,new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 300, GraphicsDevice.Viewport.TitleSafeArea.Y), Color.White);
 
             // Draw menu and button
-             //mainmenu.Draw(spriteBatch);
+             mainmenu.Draw(spriteBatch);
 
             //Stop drawing
             spriteBatch.End();

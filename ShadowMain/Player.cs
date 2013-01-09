@@ -22,10 +22,12 @@ namespace ShadowMain
         Texture2D colorVideo, depthVideo, jointTexture, headTexture;
         Texture2D[] skin = new Texture2D[5];
         Skeleton[] skeletonData;
-        Skeleton skeleton;
+        public Skeleton skeleton;
         public string status = "";
         Boolean debugging = false;
         public double p,q;
+        public bool ready = false;
+        public float pointerPosX, pointerPosY;
 
         public void Initialize(GraphicsDeviceManager graphics)
         {
@@ -36,7 +38,7 @@ namespace ShadowMain
                 kinect.DepthStream.Enable(DepthImageFormat.Resolution320x240Fps30);
                 kinect.SkeletonStream.Enable();
                 kinect.AllFramesReady += new EventHandler<AllFramesReadyEventArgs>(kinect_AllFramesReady);
-
+                ready = true;
                 kinect.Start();
                 colorVideo = new Texture2D(graphics.GraphicsDevice, kinect.ColorStream.FrameWidth, kinect.ColorStream.FrameHeight);
                 depthVideo = new Texture2D(graphics.GraphicsDevice, kinect.DepthStream.FrameWidth, kinect.DepthStream.FrameHeight);
@@ -149,6 +151,17 @@ namespace ShadowMain
 
         }
 
+
+        public void Update()
+        {
+            if (skeleton != null)
+            {
+                pointerPosX = FixJoint(skeleton.Joints[JointType.HandRight], new Vector2(Global.ScreenWidth, Global.ScreenHeight), 0, 0).X;
+                pointerPosY = FixJoint(skeleton.Joints[JointType.HandRight], new Vector2(Global.ScreenWidth, Global.ScreenHeight), 0, 0).Y;
+            }
+
+        }
+
         private void DrawSkeleton(SpriteBatch spriteBatch, Vector2 resolution, Texture2D img)
         {
             if (skeleton != null)
@@ -165,30 +178,26 @@ namespace ShadowMain
             }
 
         }
-
+        public Vector2 FixJoint(Joint joint,Vector2 resolution,int offsetX,int offsetY)
+        {
+            return new Vector2((((0.5f * joint.Position.X) + 0.5f) * (resolution.X)) - offsetX, (((-0.5f * joint.Position.Y) + 0.5f) * (resolution.Y)) - offsetY);
+        }
         private void DrawJoint(SpriteBatch spriteBatch, Joint joint, Vector2 resolution,Texture2D img, int offsetX, int offsetY)
         {
-
-            Vector2 position = new Vector2((((0.5f * joint.Position.X) + 0.5f) * (resolution.X)) - offsetX, (((-0.5f * joint.Position.Y) + 0.5f) * (resolution.Y)) - offsetY);
-            spriteBatch.Draw(img, position, Color.White);
-
+            spriteBatch.Draw(img, FixJoint(joint,resolution,offsetX,offsetY), Color.White);
         }
         
         private void DrawJointLeft(SpriteBatch spriteBatch, Joint joint, BoneOrientation bo, Vector2 resolution, Texture2D img, int offsetX, int offsetY)
         {
-
-            Vector2 position = new Vector2((((0.5f * joint.Position.X) + 0.5f) * (resolution.X)) - offsetX, (((-0.5f * joint.Position.Y) + 0.5f) * (resolution.Y)) - offsetY);
             q = (double)bo.AbsoluteRotation.Quaternion.Y;
             double theta = Math.Acos(q) - 90;
-            spriteBatch.Draw(img, position, null, Color.White, ((float)theta * 15), new Vector2(img.Width,0), 1.0f, SpriteEffects.None, 1.0f);
+            spriteBatch.Draw(img, FixJoint(joint, resolution, offsetX, offsetY), null, Color.White, ((float)theta * 15), new Vector2(img.Width, 0), 1.0f, SpriteEffects.None, 1.0f);
         }
         private void DrawJointRight(SpriteBatch spriteBatch, Joint joint, BoneOrientation bo, Vector2 resolution, Texture2D img, int offsetX, int offsetY)
         {
-
-            Vector2 position = new Vector2((((0.5f * joint.Position.X) + 0.5f) * (resolution.X)) - offsetX, (((-0.5f * joint.Position.Y) + 0.5f) * (resolution.Y)) - offsetY);
             p = (double)bo.AbsoluteRotation.Quaternion.Y;
             double theta = Math.Acos(p) - 180;
-            spriteBatch.Draw(img, position, null, Color.White, ((float)theta * 15), Vector2.Zero, 1.0f, SpriteEffects.None, 1.0f);
+            spriteBatch.Draw(img, FixJoint(joint, resolution, offsetX, offsetY), null, Color.White, ((float)theta * 15), Vector2.Zero, 1.0f, SpriteEffects.None, 1.0f);
         }
 
         private byte[] ConvertDepthFrame(short[] depthFrame, DepthImageStream depthStream)
