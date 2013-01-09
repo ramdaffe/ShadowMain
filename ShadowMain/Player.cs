@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Windows;
 using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
@@ -24,6 +25,7 @@ namespace ShadowMain
         Skeleton skeleton;
         public string status = "";
         Boolean debugging = false;
+        public double p,q;
 
         public void Initialize(GraphicsDeviceManager graphics)
         {
@@ -151,33 +153,42 @@ namespace ShadowMain
         {
             if (skeleton != null)
             {
+                DrawJointLeft(spriteBatch, skeleton.Joints[JointType.ShoulderLeft], skeleton.BoneOrientations[JointType.ShoulderLeft], resolution, skin[4], 0, 0);
+                DrawJointRight(spriteBatch, skeleton.Joints[JointType.ShoulderRight], skeleton.BoneOrientations[JointType.ShoulderRight], resolution, skin[3], 0, 0);
+                DrawJoint(spriteBatch, skeleton.Joints[JointType.Head], resolution, skin[0], (int)(skin[0].Width / 2), 20);
+                DrawJoint(spriteBatch, skeleton.Joints[JointType.ShoulderCenter], resolution, skin[1], (int)(skin[1].Width / 2), 10);
                 foreach (Joint joint in skeleton.Joints)
-                    
                 {
-                    DrawJoint(spriteBatch, skeleton.Joints[JointType.Head], resolution, skin[0], skin[0].Bounds.Center.X,skin[0].Bounds.Center.Y);
-                    DrawJoint(spriteBatch, skeleton.Joints[JointType.ShoulderCenter], resolution, skin[1],0,0);
-                    DrawJoint(spriteBatch, skeleton.Joints[JointType.HipCenter], resolution, skin[2], 0, 0);
-                    DrawJoint(spriteBatch, skeleton.Joints[JointType.ShoulderLeft], resolution, skin[3], 0, 0);
-                    DrawJoint(spriteBatch, skeleton.Joints[JointType.ShoulderRight], resolution, skin[4], 0, 0);
                     Vector2 position = new Vector2((((0.5f * joint.Position.X) + 0.5f) * (resolution.X)), (((-0.5f * joint.Position.Y) + 0.5f) * (resolution.Y)));
-                    //Vector2 position = new Vector2(0.5f * joint.Position.X * resolution.X, -0.5f * joint.Position.Y * resolution.Y);
                     spriteBatch.Draw(img, new Rectangle(Convert.ToInt32(position.X), Convert.ToInt32(position.Y), 10, 10), Color.Red);
                 }
-                
-                
             }
 
         }
 
         private void DrawJoint(SpriteBatch spriteBatch, Joint joint, Vector2 resolution,Texture2D img, int offsetX, int offsetY)
         {
-            //int offsetX, offsetY = 0;
-            //float offsetX = img.Width / 2;
-            //float offsetY = img.Height / 2;
-            Vector2 position = new Vector2((((0.5f * joint.Position.X) + 0.5f) * (resolution.X)) + offsetX, (((-0.5f * joint.Position.Y) + 0.5f) * (resolution.Y)) + offsetY);
-            //Vector2 position = new Vector2(joint.Position.X * resolution.X, joint.Position.Y * resolution.Y);
+
+            Vector2 position = new Vector2((((0.5f * joint.Position.X) + 0.5f) * (resolution.X)) - offsetX, (((-0.5f * joint.Position.Y) + 0.5f) * (resolution.Y)) - offsetY);
             spriteBatch.Draw(img, position, Color.White);
 
+        }
+        
+        private void DrawJointLeft(SpriteBatch spriteBatch, Joint joint, BoneOrientation bo, Vector2 resolution, Texture2D img, int offsetX, int offsetY)
+        {
+
+            Vector2 position = new Vector2((((0.5f * joint.Position.X) + 0.5f) * (resolution.X)) - offsetX, (((-0.5f * joint.Position.Y) + 0.5f) * (resolution.Y)) - offsetY);
+            q = (double)bo.AbsoluteRotation.Quaternion.Y;
+            double theta = Math.Acos(q) - 90;
+            spriteBatch.Draw(img, position, null, Color.White, ((float)theta * 15), new Vector2(img.Width,0), 1.0f, SpriteEffects.None, 1.0f);
+        }
+        private void DrawJointRight(SpriteBatch spriteBatch, Joint joint, BoneOrientation bo, Vector2 resolution, Texture2D img, int offsetX, int offsetY)
+        {
+
+            Vector2 position = new Vector2((((0.5f * joint.Position.X) + 0.5f) * (resolution.X)) - offsetX, (((-0.5f * joint.Position.Y) + 0.5f) * (resolution.Y)) - offsetY);
+            p = (double)bo.AbsoluteRotation.Quaternion.Y;
+            double theta = Math.Acos(p) - 180;
+            spriteBatch.Draw(img, position, null, Color.White, ((float)theta * 15), Vector2.Zero, 1.0f, SpriteEffects.None, 1.0f);
         }
 
         private byte[] ConvertDepthFrame(short[] depthFrame, DepthImageStream depthStream)
