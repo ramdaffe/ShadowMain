@@ -12,7 +12,7 @@ namespace ShadowMain
         public MenuButton LoadButton;
         public MenuButton HelpButton;
         public int selButtonID = 0;
-        
+        public bool ready = false;
         //Initial value
         public Vector2 InitNewButtonPos = new Vector2(750, 150);
         public Vector2 InitLoadButtonPos = new Vector2(750, 300);
