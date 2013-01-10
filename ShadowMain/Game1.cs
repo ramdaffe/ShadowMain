@@ -196,6 +196,7 @@ namespace ShadowMain
 
             //Detect Hover
             DetectHover();
+            CheckLevel();
 
             //Counter
             eT++;
@@ -239,12 +240,13 @@ namespace ShadowMain
                 rec.StopAndDecompress();
                 rec.isDecompressing = true;
             }
-            if (rec.GetDecProg() == 1d && rec.isDecompressing)
+            if (keyboard.IsToggled(Microsoft.Xna.Framework.Input.Keys.Enter) && rec.isDecompressing)
             {
                 rec.isDecompressing = false;
-                rec.isEncoding = true;
                 rec.Encode();
-            }
+                rec.isEncoding = true;
+            } 
+
             /*
             if (keyboard.IsToggled(Microsoft.Xna.Framework.Input.Keys.P) && !rec.isRecording && !rec.isDecompressing)
             {
@@ -292,7 +294,13 @@ namespace ShadowMain
                 debugmsg = "finished";
             }
         }
-
+        public void CheckLevel()
+        {
+            if (mainmenu.NewButton.IsSelected)
+            {
+                currentstate = 1;
+            }
+        }
 
         public void DetectHover()
         {
@@ -322,9 +330,14 @@ namespace ShadowMain
             spriteBatch.Draw(StaticBG, Vector2.Zero, Color.White);
 
             // Draw stage
-            if (currentstate == 0)
-            {   stage.Draw(spriteBatch);
+            if (currentstate == 1)
+            {
+                stage.Draw(spriteBatch);
                 player.Draw(spriteBatch);
+            }
+            else
+            {
+                mainmenu.Draw(spriteBatch);
             }
 
             // Debug text
@@ -334,7 +347,7 @@ namespace ShadowMain
             spriteBatch.DrawString(font, debugmsg, new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 300, GraphicsDevice.Viewport.TitleSafeArea.Y), Color.White);
 
             // Draw menu and button
-             mainmenu.Draw(spriteBatch);
+             
 
              // Draw UI
              spriteBatch.Draw(cursorTexture, cursorPos, Color.White * 0.5f);

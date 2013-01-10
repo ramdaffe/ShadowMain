@@ -14,7 +14,7 @@ namespace ShadowMain
         public bool isRecording,isDecompressing,isEncoding,isFileReady = false;
         public void Initialize(int Xpos, int Ypos)
         {
-            Cap = new ScapCapture(false, 2, Global.RecordFPS, ScapVideoFormats.MPEG4, ScapImageFormats.Jpeg, Xpos, Ypos, Global.ScreenWidth, Global.ScreenHeight,"CaptureTemp");
+            Cap = new ScapCapture(false, 2, Global.RecordFPS, ScapVideoFormats.MPEG4, ScapImageFormats.Jpeg, Xpos, Ypos + 20, Global.ScreenWidth, Global.ScreenHeight,"CaptureTemp");
             ScapBackendConfig.ScapBackendSetup(Cap);
         }
 
