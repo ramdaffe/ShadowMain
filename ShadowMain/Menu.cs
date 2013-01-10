@@ -7,7 +7,8 @@ namespace ShadowMain
 {
     class Menu
     {
-
+        public Texture2D Logo;
+        public Texture2D Spotlight;
         public MenuButton NewButton;
         public MenuButton LoadButton;
         public MenuButton HelpButton;
@@ -23,6 +24,8 @@ namespace ShadowMain
             NewButton = new MenuButton(content.Load<Texture2D>("Button\\menu_new"), InitNewButtonPos,"new");
             LoadButton = new MenuButton(content.Load<Texture2D>("Button\\menu_load"), InitLoadButtonPos, "load");
             HelpButton = new MenuButton(content.Load<Texture2D>("Button\\menu_help"), InitHelpButtonPos, "help");
+            Logo = content.Load<Texture2D>("MenuRes\\logo");
+            Spotlight = content.Load<Texture2D>("MenuRes\\spotlight");
             NewButton.HoverPosition = Vector2.Add(NewButton.Position, new Vector2(-30, 0));
             LoadButton.HoverPosition = Vector2.Add(LoadButton.Position, new Vector2(-30, 0));
             HelpButton.HoverPosition = Vector2.Add(HelpButton.Position, new Vector2(-30, 0));
@@ -55,16 +58,19 @@ namespace ShadowMain
         {
             switch(selButtonID){
                 case 1:
+                    NewButton.SetSelected();
                     NewButton.Position = SmoothMove(NewButton.Position,NewButton.HoverPosition,2,gameTime,elapsedTime);
                     LoadButton.Position = InitLoadButtonPos;
                     HelpButton.Position = InitHelpButtonPos;
                     break;
                 case 2:
+                    LoadButton.SetSelected();
                     LoadButton.Position = SmoothMove(LoadButton.Position, LoadButton.HoverPosition, 2, gameTime, elapsedTime);
                     NewButton.Position = InitNewButtonPos;
                     HelpButton.Position = InitHelpButtonPos;
                     break;
                 case 3:
+                    HelpButton.SetSelected();
                     HelpButton.Position = SmoothMove(HelpButton.Position, HelpButton.HoverPosition, 2, gameTime, elapsedTime);
                     NewButton.Position = InitNewButtonPos;
                     LoadButton.Position = InitLoadButtonPos;
@@ -77,6 +83,8 @@ namespace ShadowMain
 
         public void Draw(SpriteBatch spriteBatch)
         {
+            spriteBatch.Draw(Spotlight, new Vector2(200, 200), Color.White * 0.5f);
+            spriteBatch.Draw(Logo, new Vector2(200, 200), Color.White);
             NewButton.Draw(spriteBatch);
             LoadButton.Draw(spriteBatch);
             HelpButton.Draw(spriteBatch);

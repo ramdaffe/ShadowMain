@@ -29,14 +29,22 @@ namespace ShadowMain
         public bool ready = false;
         public float pointerPosX, pointerPosY;
 
+
         public void Initialize(GraphicsDeviceManager graphics)
         {
             try
             {
                 kinect = KinectSensor.KinectSensors[0];
                 //kinect.ColorStream.Enable(ColorImageFormat.RgbResolution640x480Fps30);
-                kinect.DepthStream.Enable(DepthImageFormat.Resolution320x240Fps30);
-                kinect.SkeletonStream.Enable();
+                //kinect.DepthStream.Enable(DepthImageFormat.Resolution320x240Fps30);
+                TransformSmoothParameters smoothingParam = new TransformSmoothParameters();
+                smoothingParam.Smoothing = 0.5f;
+                smoothingParam.Correction = 0.5f;
+                smoothingParam.Prediction = 0.5f;
+                smoothingParam.JitterRadius = 0.05f;
+                smoothingParam.MaxDeviationRadius = 0.04f;
+                kinect.SkeletonStream.Enable(smoothingParam);
+                
                 kinect.AllFramesReady += new EventHandler<AllFramesReadyEventArgs>(kinect_AllFramesReady);
                 ready = true;
                 kinect.Start();

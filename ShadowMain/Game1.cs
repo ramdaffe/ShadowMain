@@ -50,8 +50,6 @@ namespace ShadowMain
         SpriteFont font;
         Texture2D cursorTexture;
         Vector2 cursorPos;
-        public Texture2D Logo;
-        public Texture2D Spotlight;
         int SelectedID = 3;
         Texture2D StaticBG;
 
@@ -160,8 +158,6 @@ namespace ShadowMain
             cursorTexture = Content.Load<Texture2D>("Misc\\cursor");
             // Init static bg
             StaticBG = Content.Load<Texture2D>("Background\\bg1");
-            //Logo = Content.Load<Texture2D>("logo.png");
-            //Spotlight = Content.Load<Texture2D>("spotlight.png");
 
             // Load Menu
             mainmenu.Initialize(Content);
@@ -326,13 +322,13 @@ namespace ShadowMain
             spriteBatch.Draw(StaticBG, Vector2.Zero, Color.White);
 
             // Draw stage
-            if (currentstate == 1)
+            if (currentstate == 0)
             {   stage.Draw(spriteBatch);
                 player.Draw(spriteBatch);
             }
 
             // Debug text
-            spriteBatch.DrawString(font, mainmenu.NewButton.Hotspot.ToString(), new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 100, GraphicsDevice.Viewport.TitleSafeArea.Y), Color.White);
+            spriteBatch.DrawString(font, mainmenu.NewButton.IsSelected.ToString(), new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 100, GraphicsDevice.Viewport.TitleSafeArea.Y), Color.White);
             spriteBatch.DrawString(font, mainmenu.selButtonID.ToString(), new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 100, GraphicsDevice.Viewport.TitleSafeArea.Y + 200), Color.White);
             spriteBatch.DrawString(font, player.pointerPosX.ToString() + player.pointerPosY.ToString(), new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 100, GraphicsDevice.Viewport.TitleSafeArea.Y + 300), Color.White);
             spriteBatch.DrawString(font, debugmsg, new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 300, GraphicsDevice.Viewport.TitleSafeArea.Y), Color.White);

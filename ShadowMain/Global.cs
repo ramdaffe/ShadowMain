@@ -11,5 +11,6 @@ namespace ShadowMain
         public static int ScreenHeight = 720;
         public static float HoverTolerance = 40f;
         public static int RecordFPS = 15;
+        public static int SelectDuration = 3;
     }
 }

@@ -15,6 +15,7 @@ namespace ShadowMain
         public bool IsSelected;
         public bool IsClicked;
         public float Scale;
+        public int hovertime;
         public int Width
         {
             get { return Texture.Width; }
@@ -33,18 +34,29 @@ namespace ShadowMain
             IsClicked = false;
             Scale = 1.0f;
             HoverPosition = position;
+            hovertime = 0;
         }
 
 
-        public void SetSelected(bool status)
+        public void SetSelected()
             //for now, selected status only
         {
-            IsSelected = status;
+            IsSelected = true;
         }
 
         public void SetPos(Vector2 pos)
         {
             Position = pos;
+        }
+
+
+
+        public void Update(GameTime g)
+        {
+            if (IsSelected)
+            {
+                hovertime++;
+            }
         }
 
         public void Draw(SpriteBatch spriteBatch)
