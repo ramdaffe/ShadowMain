@@ -10,10 +10,11 @@ namespace ShadowMain
 {
     class Recorder
     {
-        ScapCapture Cap;
+        public ScapCapture Cap;
+        public bool isRecording,isDecompressing,isEncoding,isFileReady = false;
         public void Initialize(int Xpos, int Ypos)
         {
-            Cap = new ScapCapture(false, 5, Global.RecordFPS, ScapVideoFormats.MPEG4, ScapImageFormats.Jpeg, Xpos, Ypos, Global.ScreenWidth, Global.ScreenHeight);
+            Cap = new ScapCapture(false, 2, Global.RecordFPS, ScapVideoFormats.MPEG4, ScapImageFormats.Jpeg, Xpos, Ypos, Global.ScreenWidth, Global.ScreenHeight,"CaptureTemp");
             ScapBackendConfig.ScapBackendSetup(Cap);
         }
 
@@ -33,9 +34,19 @@ namespace ShadowMain
             ScapCore.EncodeCapture(false);
         }
 
+        public double GetDecProg()
+        {
+            return ScapCore.GetDecompressionProgress();
+        }
+
+        public double GetEncProg()
+        {
+            return ScapCore.GetEncodeProgress();
+        }
+
         public bool IsDecompressFinished()
         {
-            if (ScapCore.GetDecompressionProgress() == 1d)
+            if (GetDecProg() == 1d)
             {
                 return true;
             }
@@ -47,7 +58,7 @@ namespace ShadowMain
 
         public bool IsEncodeFinished()
         {
-            if (ScapCore.GetEncodeProgress() == 1d)
+            if (GetEncProg() == 1d)
             {
                 return true;
             }

@@ -9,7 +9,7 @@ namespace ShadowMain
     {
         public static int ScreenWidth = 1280;
         public static int ScreenHeight = 720;
-        public static float HoverTolerance = 20f;
-        public static int RecordFPS = 24;
+        public static float HoverTolerance = 40f;
+        public static int RecordFPS = 15;
     }
 }

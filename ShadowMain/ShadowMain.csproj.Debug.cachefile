@@ -1,13 +1,7 @@
 Content\player.xnb
 Content\Background\bg1.xnb
-Content\Sound\explosion.xnb
-Content\Sound\laserFire.xnb
-Content\Sound\gameMusic.xnb
-Content\Sound\menuMusic.xnb
-Content\gameFont.xnb
 Content\Foreground\fg1.xnb
 Content\Foreground\fg2.xnb
-Content\DINFont.xnb
 Content\Misc\cursor.xnb
 Content\Misc\recframe.xnb
 Content\Button\menu_help.xnb
@@ -23,5 +17,17 @@ Content\Kinect\rightarm-lower.xnb
 Content\Kinect\rightarm-upper.xnb
 Content\Kinect\righthand.xnb
 Content\Kinect\upper torso.xnb
+Content\MenuRes\logo.xnb
+Content\MenuRes\menubg.xnb
+Content\MenuRes\spotlight.xnb
+Content\logo.xnb
+Content\menubg.xnb
+Content\spotlight.xnb
+Content\Sound\explosion.xnb
+Content\Sound\laserFire.xnb
+Content\Sound\gameMusic.xnb
+Content\Sound\menuMusic.xnb
+Content\gameFont.xnb
+Content\DINFont.xnb
 Content\Sound\gameMusic.wma
 Content\Sound\menuMusic.wma

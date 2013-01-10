@@ -17,9 +17,6 @@ using Microsoft.Xna.Framework.Media;
 using Microsoft.Xna.Framework.Storage;
 using Microsoft.Kinect;
 //using Microsoft.Speech; -> need x86 version, not x64
-using ScapLIB;
-using AForge.Video;
-using AForge.Video.FFMPEG;
 
 namespace ShadowMain
 {
@@ -53,7 +50,10 @@ namespace ShadowMain
         SpriteFont font;
         Texture2D cursorTexture;
         Vector2 cursorPos;
+        public Texture2D Logo;
+        public Texture2D Spotlight;
         int SelectedID = 3;
+        Texture2D StaticBG;
 
         // Record layer
         Texture2D recordFrameTexture;
@@ -61,6 +61,12 @@ namespace ShadowMain
 
         // Player layer
         Player player;
+
+        // GameState
+        // 0 = main menu
+        // 1 = recording stage
+        int currentstate = 0;
+
 
         //Save IO
         // Savedata structure - IN PROGRESS
@@ -93,7 +99,7 @@ namespace ShadowMain
         };
 
         // Debugging
-        string debugmsg = "";
+        string debugmsg = "ready";
         bool toggled = false;
 
 
@@ -116,6 +122,8 @@ namespace ShadowMain
             //Init form
             var form = (System.Windows.Forms.Form)System.Windows.Forms.Form.FromHandle(this.Window.Handle);
             form.Location = new System.Drawing.Point(0, 0);
+
+            
 
             //Initialize cursor
             cursorPos = Vector2.Zero;
@@ -150,6 +158,10 @@ namespace ShadowMain
             font = Content.Load<SpriteFont>("gameFont");
             recordFrameTexture = Content.Load<Texture2D>("Misc\\recframe");
             cursorTexture = Content.Load<Texture2D>("Misc\\cursor");
+            // Init static bg
+            StaticBG = Content.Load<Texture2D>("Background\\bg1");
+            //Logo = Content.Load<Texture2D>("logo.png");
+            //Spotlight = Content.Load<Texture2D>("spotlight.png");
 
             // Load Menu
             mainmenu.Initialize(Content);
@@ -184,18 +196,31 @@ namespace ShadowMain
             stage.Update();
 
             //Menu Update
-            mainmenu.Update();
+            mainmenu.Update(gameTime,elapsedTime);
 
             //Detect Hover
             DetectHover();
 
             //Counter
             eT++;
-            KeyTrigger();
+            
+            if (rec.isRecording)
+            {
+                debugmsg = "recording";
+            }
+            if (rec.isDecompressing)
+            {
+                debugmsg = "decompressing" + rec.GetDecProg().ToString();
+            }
+            if (rec.isEncoding)
+            {
+                debugmsg = "encoding" + rec.GetEncProg().ToString();
+            }
+            RecordTrigger(gameTime);    
             //TimeTrigger(eT);
 
             //debugmsg
-            debugmsg = player.status;
+            //debugmsg = player.status;
 
             //save
             UpdateSaveKey(Microsoft.Xna.Framework.Input.Keys.F1);
@@ -204,22 +229,49 @@ namespace ShadowMain
             base.Update(gameTime);
         }
 
-
-
-        public void KeyTrigger()
+        public void RecordTrigger(GameTime g)
         {
-            if (keyboard.IsToggled(Microsoft.Xna.Framework.Input.Keys.Space) && !toggled)
+            
+            if (keyboard.IsToggled(Microsoft.Xna.Framework.Input.Keys.Space) && !rec.isRecording && !rec.isDecompressing)
             {
-                toggled = true;
-                debugmsg = "toggled";
-            }
-            if (toggled && keyboard.currentKeyboardState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Space))
+                rec.isRecording = true;
+                rec.Record();
+            } 
+            if (keyboard.isPressed(Microsoft.Xna.Framework.Input.Keys.Space) && rec.isRecording)
             {
-                debugmsg = "";
-                toggled = false;
+                rec.isRecording = false;
+                rec.StopAndDecompress();
+                rec.isDecompressing = true;
             }
+            if (rec.GetDecProg() == 1d && rec.isDecompressing)
+            {
+                rec.isDecompressing = false;
+                rec.isEncoding = true;
+                rec.Encode();
+            }
+            /*
+            if (keyboard.IsToggled(Microsoft.Xna.Framework.Input.Keys.P) && !rec.isRecording && !rec.isDecompressing)
+            {
+                rec.isRecording = true;
+                rec.Record();
+            } 
+
+            if(rec.GetEncProg() == 1d)
+            {
+                rec.isEncoding = false;
+                rec.isFileReady = true;
+            } 
+            if (rec.isFileReady)
+            {
+                debugmsg = "file ready";
+                rec.isEncoding = false;
+                rec.isDecompressing = false;
+                rec.isRecording = false;
+                rec.isFileReady = false;
+            }*/
                 
         }
+        
         public void TimeTrigger(int time)
         {
             if (time == 60)
@@ -262,16 +314,7 @@ namespace ShadowMain
             }
         }
 
-        private Vector2 SmoothMove(Vector2 initPos, Vector2 endPos, int animDuration, GameTime gameTime)
-        {
-            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            elapsedTime += dt;
-            if (elapsedTime > 1)
-                elapsedTime = 1;
-
-            float param = elapsedTime / animDuration;
-            return Vector2.Lerp(initPos, endPos, (float)Math.Pow(param / 2.0, 0.5));
-        }
+        
 
         protected override void Draw(GameTime gameTime)
         {
@@ -280,24 +323,29 @@ namespace ShadowMain
             // Start drawing
             spriteBatch.Begin();
 
-            // Draw stage
-            stage.Draw(spriteBatch);
+            spriteBatch.Draw(StaticBG, Vector2.Zero, Color.White);
 
-            // Draw Skeleton
-            player.Draw(spriteBatch);
-            
-            // Draw UI
-            spriteBatch.Draw(cursorTexture, cursorPos, Color.White * 0.5f);
-            //spriteBatch.Draw(recordFrameTexture, CenterScreen, Color.White * recOpacity);
+            // Draw stage
+            if (currentstate == 1)
+            {   stage.Draw(spriteBatch);
+                player.Draw(spriteBatch);
+            }
 
             // Debug text
             spriteBatch.DrawString(font, mainmenu.NewButton.Hotspot.ToString(), new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 100, GraphicsDevice.Viewport.TitleSafeArea.Y), Color.White);
             spriteBatch.DrawString(font, mainmenu.selButtonID.ToString(), new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 100, GraphicsDevice.Viewport.TitleSafeArea.Y + 200), Color.White);
             spriteBatch.DrawString(font, player.pointerPosX.ToString() + player.pointerPosY.ToString(), new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 100, GraphicsDevice.Viewport.TitleSafeArea.Y + 300), Color.White);
-            spriteBatch.DrawString(font, debugmsg,new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 300, GraphicsDevice.Viewport.TitleSafeArea.Y), Color.White);
+            spriteBatch.DrawString(font, debugmsg, new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 300, GraphicsDevice.Viewport.TitleSafeArea.Y), Color.White);
 
             // Draw menu and button
              mainmenu.Draw(spriteBatch);
+
+             // Draw UI
+             spriteBatch.Draw(cursorTexture, cursorPos, Color.White * 0.5f);
+             if (rec.isRecording)
+             {
+                 spriteBatch.Draw(recordFrameTexture, Vector2.Zero, Color.White);
+             }
 
             //Stop drawing
             spriteBatch.End();

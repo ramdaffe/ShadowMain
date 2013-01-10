@@ -7,7 +7,7 @@ namespace ShadowMain
 {
     class Menu
     {
-        public Texture2D Logo;
+
         public MenuButton NewButton;
         public MenuButton LoadButton;
         public MenuButton HelpButton;
@@ -17,7 +17,6 @@ namespace ShadowMain
         public Vector2 InitNewButtonPos = new Vector2(750, 150);
         public Vector2 InitLoadButtonPos = new Vector2(750, 300);
         public Vector2 InitHelpButtonPos = new Vector2(750, 450);
-
 
         public void Initialize(ContentManager content)
         {
@@ -41,21 +40,32 @@ namespace ShadowMain
             HelpButton.Position = InitHelpButtonPos;
         }
 
-        public void Update()
+        public Vector2 SmoothMove(Vector2 initPos, Vector2 endPos, int animDuration, GameTime gameTime, float elapsedTime )
+        {
+            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            elapsedTime += dt;
+            if (elapsedTime > 1)
+                elapsedTime = 1;
+
+            float param = elapsedTime / animDuration;
+            return Vector2.Lerp(initPos, endPos, (float)Math.Pow(param / 2.0, 0.5));
+        }
+
+        public void Update(GameTime gameTime, float elapsedTime)
         {
             switch(selButtonID){
                 case 1:
-                    NewButton.Position = NewButton.HoverPosition;
+                    NewButton.Position = SmoothMove(NewButton.Position,NewButton.HoverPosition,2,gameTime,elapsedTime);
                     LoadButton.Position = InitLoadButtonPos;
                     HelpButton.Position = InitHelpButtonPos;
                     break;
                 case 2:
-                    LoadButton.Position = LoadButton.HoverPosition;
+                    LoadButton.Position = SmoothMove(LoadButton.Position, LoadButton.HoverPosition, 2, gameTime, elapsedTime);
                     NewButton.Position = InitNewButtonPos;
                     HelpButton.Position = InitHelpButtonPos;
                     break;
                 case 3:
-                    HelpButton.Position = HelpButton.HoverPosition;
+                    HelpButton.Position = SmoothMove(HelpButton.Position, HelpButton.HoverPosition, 2, gameTime, elapsedTime);
                     NewButton.Position = InitNewButtonPos;
                     LoadButton.Position = InitLoadButtonPos;
                     break;

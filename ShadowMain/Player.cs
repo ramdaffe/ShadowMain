@@ -20,7 +20,7 @@ namespace ShadowMain
         //Kinect
         KinectSensor kinect;
         Texture2D colorVideo, depthVideo, jointTexture, headTexture;
-        Texture2D[] skin = new Texture2D[5];
+        Texture2D[] skin = new Texture2D[9];
         Skeleton[] skeletonData;
         public Skeleton skeleton;
         public string status = "";
@@ -60,6 +60,8 @@ namespace ShadowMain
             skin[2] = content.Load<Texture2D>("Kinect\\pelvis");
             skin[3] = content.Load<Texture2D>("Kinect\\leftarm-upper");
             skin[4] = content.Load<Texture2D>("Kinect\\rightarm-upper");
+            skin[5] = content.Load<Texture2D>("Kinect\\leftarm-lower");
+            skin[6] = content.Load<Texture2D>("Kinect\\rightarm-lower");
 
         }
 
@@ -166,9 +168,12 @@ namespace ShadowMain
         {
             if (skeleton != null)
             {
-                DrawJointLeft(spriteBatch, skeleton.Joints[JointType.ShoulderLeft], skeleton.BoneOrientations[JointType.ShoulderLeft], resolution, skin[4], 0, 0);
-                DrawJointRight(spriteBatch, skeleton.Joints[JointType.ShoulderRight], skeleton.BoneOrientations[JointType.ShoulderRight], resolution, skin[3], 0, 0);
+                DrawJointLeft(spriteBatch, skeleton.Joints[JointType.ShoulderLeft], skeleton.BoneOrientations[JointType.ShoulderLeft], resolution, skin[4], 0, 0,13);
+                //DrawJointLeft(spriteBatch, skeleton.Joints[JointType.ElbowLeft], skeleton.BoneOrientations[JointType.ElbowLeft], resolution, skin[6], 0, 0, 8);
+                DrawJointRight(spriteBatch, skeleton.Joints[JointType.ShoulderRight], skeleton.BoneOrientations[JointType.ShoulderRight], resolution, skin[3], 0, 0,13);
+                //DrawJointLeft(spriteBatch, skeleton.Joints[JointType.ElbowRight], skeleton.BoneOrientations[JointType.ElbowRight], resolution, skin[5], 0, 0, 8);
                 DrawJoint(spriteBatch, skeleton.Joints[JointType.Head], resolution, skin[0], (int)(skin[0].Width / 2), 20);
+                DrawJoint(spriteBatch, skeleton.Joints[JointType.HipCenter], resolution, skin[2], (int)(skin[2].Width / 2), -20);
                 DrawJoint(spriteBatch, skeleton.Joints[JointType.ShoulderCenter], resolution, skin[1], (int)(skin[1].Width / 2), 10);
                 foreach (Joint joint in skeleton.Joints)
                 {
@@ -187,17 +192,17 @@ namespace ShadowMain
             spriteBatch.Draw(img, FixJoint(joint,resolution,offsetX,offsetY), Color.White);
         }
         
-        private void DrawJointLeft(SpriteBatch spriteBatch, Joint joint, BoneOrientation bo, Vector2 resolution, Texture2D img, int offsetX, int offsetY)
+        private void DrawJointLeft(SpriteBatch spriteBatch, Joint joint, BoneOrientation bo, Vector2 resolution, Texture2D img, int offsetX, int offsetY, int angle)
         {
             q = (double)bo.AbsoluteRotation.Quaternion.Y;
             double theta = Math.Acos(q) - 90;
-            spriteBatch.Draw(img, FixJoint(joint, resolution, offsetX, offsetY), null, Color.White, ((float)theta * 15), new Vector2(img.Width, 0), 1.0f, SpriteEffects.None, 1.0f);
+            spriteBatch.Draw(img, FixJoint(joint, resolution, offsetX, offsetY), null, Color.White, ((float)theta * angle), new Vector2(img.Width, 0), 1.0f, SpriteEffects.None, 1.0f);
         }
-        private void DrawJointRight(SpriteBatch spriteBatch, Joint joint, BoneOrientation bo, Vector2 resolution, Texture2D img, int offsetX, int offsetY)
+        private void DrawJointRight(SpriteBatch spriteBatch, Joint joint, BoneOrientation bo, Vector2 resolution, Texture2D img, int offsetX, int offsetY, int angle)
         {
             p = (double)bo.AbsoluteRotation.Quaternion.Y;
             double theta = Math.Acos(p) - 180;
-            spriteBatch.Draw(img, FixJoint(joint, resolution, offsetX, offsetY), null, Color.White, ((float)theta * 15), Vector2.Zero, 1.0f, SpriteEffects.None, 1.0f);
+            spriteBatch.Draw(img, FixJoint(joint, resolution, offsetX, offsetY), null, Color.White, ((float)theta * angle), Vector2.Zero, 1.0f, SpriteEffects.None, 1.0f);
         }
 
         private byte[] ConvertDepthFrame(short[] depthFrame, DepthImageStream depthStream)

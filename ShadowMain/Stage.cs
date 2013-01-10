@@ -14,14 +14,14 @@ namespace ShadowMain
 {
     class Stage
     {
-        Texture2D StaticBG;
+
         Foreground ForeLayer1;
         Foreground ForeLayer2;
         
         public void Initialize(ContentManager content)
         {
             // Initialize Background
-            StaticBG = content.Load<Texture2D>("Background\\bg1");
+            
 
             // Initialize Foreground
             ForeLayer1 = new Foreground();
@@ -42,7 +42,7 @@ namespace ShadowMain
         }
         public void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(StaticBG, Vector2.Zero, Color.White);
+            
             ForeLayer1.Draw(spriteBatch);
             ForeLayer2.Draw(spriteBatch);
             
